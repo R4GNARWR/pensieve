@@ -7,7 +7,7 @@ export const useGetSpaces = async () => {
     const { data: spaceResponse, error } = await getRequest<Space[]>("/space", {
       lazy: true,
     });
-    
+
     if (error.value) {
       console.error("Authorization error:", error.value);
     }
@@ -22,9 +22,14 @@ export const useGetSpaces = async () => {
 };
 
 export const useCreateSpace = async (name: string) => {
-  postRequest("/space", { body: { name } }).then((response) => {});
+  postRequest("/space", { body: { name } }).then(() => {});
 };
 
-export const useAddUserToSpace = async (spaceId: number, email: string) => {
-  postRequest("/space", { body: { spaceId, email } }).then((response) => {});
+export const useAddUserToSpace = async (spaceId: number, userId: number) => {
+  try {
+    await postRequest("/space/add", { body: { spaceId, userId } });
+  } catch (error: any) {
+    const message = error.data?.error?.message;
+    if (message) alert(message);
+  }
 };

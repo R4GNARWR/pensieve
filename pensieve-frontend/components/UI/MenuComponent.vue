@@ -4,7 +4,7 @@
     <div class="menu">
       <div class="menu-head">меню</div>
       <ul class="menu-links">
-        <li><button>Добавить пользователя</button></li>
+        <li><button @click="openAddUserModal">Добавить пользователя</button></li>
         <li><nuxt-link>Добавить запись</nuxt-link></li>
         <li><nuxt-link>Все архивы</nuxt-link></li>
         <li><button @click="logout">Выйти</button></li>
@@ -20,6 +20,10 @@ const isMenuVisible = computed(() => settingsStore.isMenuVisible);
 const isAuth = computed(() => userStore.user?.id);
 const closeModal = () => {
   settingsStore.isMenuVisible = false;
+};
+const openAddUserModal = () => {
+  settingsStore.isMenuVisible = false;
+  settingsStore.isAddUserModalVisible = true;
 };
 const logout = () => {
   useLogout();

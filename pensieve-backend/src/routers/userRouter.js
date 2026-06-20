@@ -1,10 +1,21 @@
 import express from "express";
 import { body } from "express-validator";
-import * as EmailValidator from "email-validator";
 import userController from "../controllers/userController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+
+const usernameValidation = body("username")
+  .trim()
+  .escape()
+  .custom((value) => {
+    if (!value) throw new Error("Поле 'Логин' не может быть пустым");
+    if (value.length < 3) throw new Error("Логин должен быть не менее 3 символов");
+    if (value.length > 30) throw new Error("Логин должен быть не более 30 символов");
+    if (!/^[a-zA-Z0-9_-]+$/.test(value))
+      throw new Error("Логин может содержать только буквы, цифры, дефис и подчёркивание");
+    return true;
+  });
 
 /**
  * @swagger
@@ -13,8 +24,6 @@ const router = express.Router();
  *   post:
  *     tags:
  *       - Users
- *     produces:
- *       - application/json
  *     description: Регистрация нового пользователя
  *     requestBody:
  *       required: true
@@ -23,86 +32,46 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               username:
  *                 type: string
- *               email:
+ *               name:
  *                 type: string
  *               password:
  *                 type: string
  *     responses:
  *       201:
  *         description: Пользователь успешно зарегистрирован
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
  *       400:
  *         description: Ошибки валидации
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 errors:
- *                   type: array
- *                   items:
- *                     type: string
+ *       403:
+ *         description: Регистрация закрыта
  */
 router.post(
   "/register",
   [
+    usernameValidation,
     body("name")
       .trim()
       .escape()
       .custom((value) => {
-        if (!value) {
-          throw new Error("Поле 'Имя' не может быть пустым");
-        }
-        if (value.length < 2) {
-          throw new Error("Имя должно быть не менее 2 символов");
-        }
-        if (value.length > 40) {
-          throw new Error("Имя должно быть не более 40 символов");
-        }
-        return true;
-      }),
-    body("email")
-      .trim()
-      .escape()
-      .custom(async (value) => {
-        if (!value) {
-          throw new Error("Поле 'Email' не может быть пустым");
-        }
-        if (!EmailValidator.validate(value)) {
-          throw new Error("Некорректный email");
-        }
+        if (!value) throw new Error("Поле 'Имя' не может быть пустым");
+        if (value.length < 2) throw new Error("Имя должно быть не менее 2 символов");
+        if (value.length > 40) throw new Error("Имя должно быть не более 40 символов");
         return true;
       }),
     body("password")
       .trim()
       .escape()
       .custom((value) => {
-        if (!value) {
-          throw new Error("Поле 'Пароль' не может быть пустым");
-        }
-        if (value.length < 8) {
-          throw new Error("Пароль должен быть не менее 8 символов");
-        }
-        if (value.length > 40) {
-          throw new Error("Пароль должен быть не более 40 символов");
-        }
+        if (!value) throw new Error("Поле 'Пароль' не может быть пустым");
+        if (value.length < 8) throw new Error("Пароль должен быть не менее 8 символов");
+        if (value.length > 40) throw new Error("Пароль должен быть не более 40 символов");
         return true;
       }),
   ],
   userController.register
 );
+
 /**
  * @swagger
  *
@@ -110,8 +79,6 @@ router.post(
  *   post:
  *     tags:
  *       - Users
- *     produces:
- *       - application/json
  *     description: Аутентификация пользователя
  *     requestBody:
  *       required: true
@@ -120,61 +87,31 @@ router.post(
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               username:
  *                 type: string
  *               password:
  *                 type: string
  *     responses:
  *       200:
  *         description: Пользователь аутентифицирован
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
  *       400:
  *         description: Ошибки валидации
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 errors:
- *                   type: array
- *                   items:
- *                     type: string
  */
 router.post(
   "/login",
   [
-    body("email")
-      .trim()
-      .escape()
-      .custom(async (value) => {
-        if (!value) {
-          throw new Error("Поле 'Email' не может быть пустым");
-        }
-        if(!EmailValidator.validate(value)) {
-          throw new Error("Некорректный email");
-        }
-      }),
+    usernameValidation,
     body("password")
       .trim()
       .escape()
-      .custom(async (value) => {
-        if (!value) {
-          throw new Error("Поле 'Пароль' не может быть пустым");
-        }
+      .custom((value) => {
+        if (!value) throw new Error("Поле 'Пароль' не может быть пустым");
+        return true;
       }),
   ],
   userController.login
 );
+
 /**
  * @swagger
  *
@@ -183,42 +120,16 @@ router.post(
  *     tags:
  *       - Users
  *     summary: Проверка авторизации пользователя
- *     description: Возвращает информацию о текущем аутентифицированном пользователе
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Успешная авторизация
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                   example: 1
- *                 name:
- *                   type: string
- *                   example: "Иван Иванов"
- *                 email:
- *                   type: string
- *                   example: "user@example.com"
- *       401:
+ *       403:
  *         description: Пользователь не авторизован
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Ошибка сервера"
- *       500:
- *         description: Ошибка сервера
  */
-router.get(
-  "/authorize", authMiddleware, userController.authorize
-);
+router.get("/authorize", authMiddleware, userController.authorize);
+
 /**
  * @swagger
  *
@@ -227,36 +138,15 @@ router.get(
  *     tags:
  *       - Users
  *     summary: Выход из системы
- *     description: Завершает текущую сессию пользователя и удаляет refresh-токен
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Успешный выход
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Вы успешно вышли"
- *       401:
+ *       403:
  *         description: Пользователь не авторизован
- *       500:
- *         description: Ошибка сервера
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Ошибка сервера"
  */
-router.get(
-  "/logout", authMiddleware, userController.logout
-);
+router.get("/logout", authMiddleware, userController.logout);
 
 /**
  * @swagger
@@ -266,7 +156,6 @@ router.get(
  *     tags:
  *       - Users
  *     summary: Обновление access токена
- *     description: Выдаёт новую пару токенов по действующему refresh токену
  *     requestBody:
  *       required: true
  *       content:
@@ -279,11 +168,27 @@ router.get(
  *     responses:
  *       200:
  *         description: Новая пара токенов
- *       401:
- *         description: Токен отсутствует
  *       403:
  *         description: Токен невалидный или истёк
  */
 router.post("/refresh", userController.refreshToken);
+
+/**
+ * @swagger
+ *
+ * /users:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Список всех пользователей приложения
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Массив пользователей (id, username, name)
+ *       403:
+ *         description: Пользователь не авторизован
+ */
+router.get("/users", authMiddleware, userController.getUsers);
 
 export default router;

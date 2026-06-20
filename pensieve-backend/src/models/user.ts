@@ -4,7 +4,7 @@ import { sequelize } from "../database.js";
 class User extends Model {
   declare id: number;
   declare name: string;
-  declare email: string;
+  declare username: string;
   declare password: string;
   declare salt: string;
 }
@@ -20,9 +20,10 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    email: {
+    username: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,

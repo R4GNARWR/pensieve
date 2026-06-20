@@ -10,14 +10,10 @@ class spaceController {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res
-          .status(400)
-          .json(ApiResponse.error(errors.array()[0].msg, 400));
+        return res.status(400).json(ApiResponse.error(errors.array()[0].msg, 400));
       }
       const userId = req.user?.id;
-      const userSpaces = await UserSpaces.findAll({
-        where: { userId: userId },
-      });
+      const userSpaces = await UserSpaces.findAll({ where: { userId } });
       if (userSpaces) {
         const spaces = [];
         if (Array.isArray(userSpaces)) {
@@ -32,67 +28,61 @@ class spaceController {
         if (spaces.length) {
           return res.status(200).json(ApiResponse.success([...spaces]));
         } else {
-          return res
-            .status(404)
-            .json(ApiResponse.error("Не найдено пространств", 404));
+          return res.status(404).json(ApiResponse.error("Не найдено пространств", 404));
         }
       } else {
-        return res
-          .status(404)
-          .json(ApiResponse.error("Не найдено пространств", 404));
+        return res.status(404).json(ApiResponse.error("Не найдено пространств", 404));
       }
     } catch (e) {
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
       console.log(e);
     }
   }
+
   async createSpace(req, res) {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res
-          .status(400)
-          .json(ApiResponse.error(errors.array()[0].msg, 400));
+        return res.status(400).json(ApiResponse.error(errors.array()[0].msg, 400));
       }
-
-      const spaceResult = await SpaceService.createUserSpace(
-        req.user.id,
-        req.body.name
-      );
-
+      const spaceResult = await SpaceService.createUserSpace(req.user.id, req.body.name);
       return res.status(201).json(ApiResponse.success({ ...spaceResult }, 201));
     } catch (e) {
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
       console.log(e);
     }
   }
+
   async addUserToSpace(req, res) {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res
-          .status(400)
-          .json(ApiResponse.error(errors.array()[0].msg, 400));
+        return res.status(400).json(ApiResponse.error(errors.array()[0].msg, 400));
       }
 
-      const { spaceId, email } = req.body;
+      const { spaceId, userId } = req.body;
+
       const space = await Space.findByPk(spaceId);
       if (!space) {
-        return res
-          .status(404)
-          .json(ApiResponse.error("Пространство не найдено", 404));
+        return res.status(404).json(ApiResponse.error("Пространство не найдено", 404));
       }
-      const userToAdd = await User.findOne({ where: { email } });
+
+      if (space.ownerId !== req.user.id) {
+        return res.status(403).json(ApiResponse.error("Только владелец может добавлять участников", 403));
+      }
+
+      const userToAdd = await User.findByPk(userId);
       if (!userToAdd) {
-        return res
-          .status(404)
-          .json(ApiResponse.error("Пользователь не найден", 404));
+        return res.status(404).json(ApiResponse.error("Пользователь не найден", 404));
       }
-      await UserSpaces.create({ userId: userToAdd.id, spaceId: space.id });
-      await space.save();
-      return res
-        .status(200)
-        .json(ApiResponse.success("Пользователь добавлен", 200));
+
+      const alreadyMember = await UserSpaces.findOne({ where: { userId, spaceId } });
+      if (alreadyMember) {
+        return res.status(400).json(ApiResponse.error("Пользователь уже состоит в этом пространстве", 400));
+      }
+
+      await UserSpaces.create({ userId, spaceId: space.id });
+      return res.status(200).json(ApiResponse.success("Пользователь добавлен", 200));
     } catch (e) {
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
       console.log(e);

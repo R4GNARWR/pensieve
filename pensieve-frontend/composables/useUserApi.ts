@@ -52,18 +52,15 @@ const saveUserFromResponse = (data: any) => {
 };
 
 export const useAuthenticateUser = async ({
-  email,
+  username,
   password,
 }: {
-  email: string;
+  username: string;
   password: string;
 }) => {
   try {
     const response: any = await postRequest("/login", {
-      body: {
-        email: email,
-        password: password,
-      },
+      body: { username, password },
     });
     saveUserFromResponse(response.data);
   } catch (error: any) {
@@ -74,20 +71,16 @@ export const useAuthenticateUser = async ({
 
 export const useRegisterUser = async ({
   name,
-  email,
+  username,
   password,
 }: {
   name: string;
-  email: string;
+  username: string;
   password: string;
 }) => {
   try {
     const response: any = await postRequest("/register", {
-      body: {
-        name,
-        email,
-        password,
-      },
+      body: { name, username, password },
     });
     saveUserFromResponse(response.data);
   } catch (error: any) {
@@ -115,10 +108,20 @@ export const useAuthorizeUser = async () => {
 
 export const useLogout = async () => {
   try {
-    const response: any = await postRequest("/logout");
+    await getRequest("/logout");
     clearUserData();
   } catch (error: any) {
     const message = error.data?.error?.message;
     if (message) alert(message);
+  }
+};
+
+export const useGetAllUsers = async (): Promise<User[]> => {
+  try {
+    const { data: response } = await getRequest<User[]>("/users");
+    return response.value?.data ?? [];
+  } catch (e) {
+    console.error("Failed to fetch users:", e);
+    return [];
   }
 };

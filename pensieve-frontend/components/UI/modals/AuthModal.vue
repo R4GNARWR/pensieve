@@ -32,12 +32,12 @@
             ></TheInput>
             <TheInput
               class="text-center"
-              placeholder="Введите почту"
-              v-model="email"
+              placeholder="Логин"
+              v-model="username"
             ></TheInput>
             <TheInput
               class="text-center"
-              placeholder="Введите пароль"
+              placeholder="Пароль"
               type="password"
               v-model="password"
             ></TheInput>
@@ -47,19 +47,15 @@
           </template>
           <template v-if="currentTab === 'login'">
             <h2 class="text-center">Вход</h2>
-            <TheInput placeholder="Введите почту" v-model="email"></TheInput>
+            <TheInput placeholder="Логин" v-model="username"></TheInput>
             <TheInput
-              placeholder="Введите пароль"
+              placeholder="Пароль"
               v-model="password"
               type="password"
             ></TheInput>
             <button class="btn btn-white-pink" @click="authorize">
               Отправить
             </button>
-          </template>
-          <template v-if="currentTab === 'passwordSent'">
-            <h2 class="text-center">Вам на почту отправлен пароль для входа</h2>
-            <button class="btn btn-white-pink">войти с паролем</button>
           </template>
         </div>
       </div>
@@ -68,7 +64,7 @@
 </template>
 <script setup lang="ts">
 const currentTab = ref("");
-const email = ref("");
+const username = ref("");
 const password = ref("");
 const name = ref("");
 const isVisible = computed(() => useSettingsStore().isAuthModalVisible);
@@ -80,7 +76,7 @@ const closeModal = () => {
 
 const authorize = () => {
   useAuthenticateUser({
-    email: email.value,
+    username: username.value,
     password: password.value,
   });
 };
@@ -88,7 +84,7 @@ const authorize = () => {
 const register = () => {
   useRegisterUser({
     name: name.value,
-    email: email.value,
+    username: username.value,
     password: password.value,
   });
 };

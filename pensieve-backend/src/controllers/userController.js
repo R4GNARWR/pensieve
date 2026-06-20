@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Op } from "sequelize";
 import User from "../models/user.js";
 import jsonwebtoken from "jsonwebtoken";
 import RefreshToken from "../models/refresh.js";
@@ -15,7 +16,7 @@ const generateAccessToken = (user) => {
   return sign(
     {
       id: user.id,
-      email: user.email,
+      username: user.username,
       name: user.name,
     },
     process.env.SECRET_KEY,
@@ -110,13 +111,13 @@ class authController {
       if (!errors.isEmpty()) {
         return res.status(400).json(ApiResponse.error(errors.array()[0].msg));
       }
-      const { email } = req.body;
+      const { username } = req.body;
 
-      const user = await User.findOne({ where: { email } });
+      const user = await User.findOne({ where: { username } });
       if (!user) {
         return res
           .status(404)
-          .json(ApiResponse.error("Пользователь c таким email не найден", 404));
+          .json(ApiResponse.error("Пользователь с таким логином не найден", 404));
       }
       if (comparePasswords(req.body.password, user.password, user.salt) === false) {
         return res.status(400).json(ApiResponse.error("Неверный пароль", 400));
@@ -136,7 +137,7 @@ class authController {
           user: {
             id: user.id,
             name: user.name,
-            email: user.email,
+            username: user.username,
           },
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -159,25 +160,19 @@ class authController {
         return res.status(400).json(ApiResponse.error(errors.array()[0].msg));
       }
 
-      const { name, email, password } = req.body;
+      const { name, username, password } = req.body;
 
-      const findExistingUser = await User.findOne({ where: { email } });
-      if (findExistingUser) {
+      const existing = await User.findOne({ where: { username } });
+      if (existing) {
         return res
           .status(400)
-          .json(ApiResponse.error("Пользователь с таким email уже существует", 400));
+          .json(ApiResponse.error("Пользователь с таким логином уже существует", 400));
       }
 
       const salt = crypto.randomBytes(16).toString("base64");
       const hashedPassword = crypto.scryptSync(password, salt, 64).toString("base64");
 
-      const user = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        salt,
-      });
-
+      const user = await User.create({ name, username, password: hashedPassword, salt });
       await SpaceService.createUserSpace(user.id, "Personal");
 
       const access_token = generateAccessToken(user);
@@ -188,7 +183,7 @@ class authController {
           user: {
             id: user.id,
             name: user.name,
-            email: user.email,
+            username: user.username,
           },
           access_token,
           refresh_token,
@@ -204,7 +199,7 @@ class authController {
     try {
       const user = {
         id: req.user?.id,
-        email: req.user?.email,
+        username: req.user?.username,
         name: req.user?.name,
       };
       res.json(ApiResponse.success(user, 200));
@@ -222,6 +217,19 @@ class authController {
     } catch (e) {
       console.error("Logout error:", e);
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
+    }
+  }
+
+  async getUsers(req, res) {
+    try {
+      const users = await User.findAll({
+        where: { id: { [Op.ne]: req.user.id } },
+        attributes: ["id", "username", "name"],
+      });
+      res.json(ApiResponse.success(users));
+    } catch (e) {
+      res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
+      console.log(e);
     }
   }
 }
