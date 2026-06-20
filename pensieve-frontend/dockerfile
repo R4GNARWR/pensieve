@@ -1,0 +1,44 @@
+# Этап 1: Сборка приложения
+FROM node:22.17-alpine AS builder
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем только файлы зависимостей для кэширования
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm i --no-audit --silent && \
+    npm cache clean --force
+
+# Копируем остальные файлы проекта
+COPY . .
+
+# Сборка приложения
+RUN npm run build
+
+# Этап 2: Финальный образ для продакшена
+FROM node:22.17-alpine
+
+# Создаем непривилегированного пользователя
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем билд и зависимости
+COPY --from=builder --chown=appuser:appgroup /app/.output ./.output
+COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
+
+# Устанавливаем только продакшн-зависимости
+RUN npm i --only=production --no-audit --silent && \
+    npm cache clean --force
+
+# Указываем порт, который будет использовать приложение
+ENV PORT=3000
+EXPOSE ${PORT}
+USER appuser
+
+# Запускаем приложение
+CMD ["node", ".output/server/index.mjs"]
