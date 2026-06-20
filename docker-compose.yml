@@ -45,6 +45,8 @@ services:
       REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
       ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+    volumes:
+      - uploads_data:/express/uploads
     networks:
       - app-network
     depends_on:
@@ -80,6 +82,7 @@ services:
 
 volumes:
   mysql_data:
+  uploads_data:
 
 networks:
   app-network:

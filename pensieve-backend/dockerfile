@@ -39,6 +39,9 @@ COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 # Порт приложения
 EXPOSE ${PORT}
 
+# Создаём папку для загрузок и передаём права до смены пользователя
+RUN mkdir -p uploads && chown appuser:appgroup uploads
+
 # Переключаемся на непривилегированного пользователя
 USER appuser
 

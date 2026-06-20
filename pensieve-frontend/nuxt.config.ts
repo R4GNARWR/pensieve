@@ -1,6 +1,11 @@
 // nuxt.config.ts
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
+const internalApiUrl =
+  import.meta.dev
+    ? "http://localhost:5000"
+    : "http://backend:5000";
+
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
@@ -55,8 +60,8 @@ export default defineNuxtConfig({
   ],
   nitro: {
     routeRules: {
-      "/api": {
-        ssr: false,
+      "/api/**": {
+        proxy: `${internalApiUrl}/api/**`,
       },
     },
   },

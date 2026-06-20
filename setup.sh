@@ -71,9 +71,17 @@ HTTP_STATUS=$(curl -s -o /tmp/pensieve_register.json -w "%{http_code}" \
 
 rm -f /tmp/pensieve_register.json
 
+LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+
 if [ "$HTTP_STATUS" = "201" ]; then
   echo ""
-  echo "Done! Pensieve is running at http://localhost"
+  echo "Done! Pensieve is running."
+  echo ""
+  echo "  This device:        http://localhost"
+  if [ -n "$LOCAL_IP" ]; then
+    echo "  Local network:      http://$LOCAL_IP"
+  fi
+  echo ""
   echo "Username: $ADMIN_USERNAME"
 else
   echo "App is running but user creation failed (HTTP $HTTP_STATUS)."

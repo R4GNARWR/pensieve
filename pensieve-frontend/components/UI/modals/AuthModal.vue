@@ -27,13 +27,13 @@
             <h2 class="text-center">Регистрация</h2>
             <TheInput
               class="text-center"
-              placeholder="Ваше имя"
-              v-model="name"
+              placeholder="Логин"
+              v-model="username"
             ></TheInput>
             <TheInput
               class="text-center"
-              placeholder="Логин"
-              v-model="username"
+              placeholder="Ваше имя"
+              v-model="name"
             ></TheInput>
             <TheInput
               class="text-center"

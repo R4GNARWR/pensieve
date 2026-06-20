@@ -58,12 +58,12 @@ docker compose up -d --build
 ## Backup
 
 ```bash
-docker exec pensieve-db-1 mysqldump -u pensieve -p"$DB_PASSWORD" pensieve_db > backup.sql
+docker compose exec db mysqldump -u pensieve -p"$DB_PASSWORD" pensieve_db > backup.sql
 ```
 
 ## Tech Stack
 
-- **Backend**: Node.js · Express · Sequelize · MySQL
+- **Backend**: Node.js · TypeScript · Express · Sequelize · MySQL
 - **Frontend**: Nuxt 3 · Vue 3 · Vuetify · Pinia
 - **Infra**: Docker Compose · Nginx
 
