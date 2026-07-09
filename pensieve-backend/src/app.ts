@@ -1,6 +1,7 @@
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
+import fs from "fs";
 import { rateLimit } from 'express-rate-limit'
 import { sequelize } from "./database.js";
 import swaggerUi from "swagger-ui-express";
@@ -36,6 +37,9 @@ const swaggerSpec = swaggerJSDoc({
 
 const SERVER_PORT = process.env.SERVER_PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost";
+
+const UPLOADS_DIR = "uploads";
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

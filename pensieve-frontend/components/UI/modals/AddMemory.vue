@@ -47,6 +47,7 @@ import type { Memory } from '~/types/Memory';
 
 const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
+const memoriesStore = useMemoriesStore();
 
 const isVisible = computed(() => settingsStore.isAddMemoryModalVisible);
 const selectedSpaceId: ComputedRef<number | null> = computed(() => spaceStore.selectedSpaceId);
@@ -69,7 +70,11 @@ const addMemory = async () => {
     const response = await useCreateMemory(memoryData.value, selectedSpaceId.value);
     if (response.success) {
       settingsStore.isAddMemoryModalVisible = false;
-      useGetMemories(selectedSpaceId.value)
+      const currentYear = new Date().getFullYear();
+      const { data: memoriesResponse } = await useGetMemories(selectedSpaceId.value);
+      if (memoriesResponse.value?.data) {
+        memoriesStore.memories[currentYear] = memoriesResponse.value.data;
+      }
     } else {
       alert(response.data);
     }

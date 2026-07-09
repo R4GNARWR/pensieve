@@ -42,7 +42,7 @@ const emit = defineEmits(["onClosedClick"]);
 const currentYear = new Date().getFullYear();
 
 const isMemoryActive = computed(() => {
-  return new Date(props.memory?.date) > new Date() ? true : false;
+  return new Date(props.memory?.date) > new Date() || props.insertMode ? true : false;
 });
 
 const computedName = computed(() => {

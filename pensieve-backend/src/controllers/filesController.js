@@ -35,10 +35,7 @@ class filesController {
       );
     } catch (error) {
       console.log(error);
-      res.status(500).json(ApiResponse.error("Server error", 500));
-      return res
-        .status(500)
-        .json(ApiResponse.error({ message: "Server error" }, 500));
+      return res.status(500).json(ApiResponse.error("Server error", 500));
     }
   }
 }

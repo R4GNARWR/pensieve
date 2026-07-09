@@ -2,8 +2,8 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 const internalApiUrl =
-  import.meta.dev
-    ? "http://localhost:5000"
+  process.env.NODE_ENV !== "production"
+    ? "http://127.0.0.1:5000"
     : "http://backend:5000";
 
 export default defineNuxtConfig({
@@ -62,6 +62,9 @@ export default defineNuxtConfig({
     routeRules: {
       "/api/**": {
         proxy: `${internalApiUrl}/api/**`,
+      },
+      "/uploads/**": {
+        proxy: `${internalApiUrl}/uploads/**`,
       },
     },
   },
