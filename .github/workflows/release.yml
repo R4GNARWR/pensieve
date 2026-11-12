@@ -22,12 +22,18 @@ jobs:
               --username "${{ github.actor }}" \
               --password-stdin
 
-      - name: Build and push image
+      - name: Build and push application images
+        env:
+          IMAGE_PREFIX: ghcr.io/r4gnarwr/pensieve
         run: |
-          IMAGE=ghcr.io/r4gnarwr/pensieve-backend
-
           docker build \
-            --tag "$IMAGE:${{ github.sha }}" \
+            --tag "$IMAGE_PREFIX-backend:$GITHUB_SHA" \
             ./pensieve-backend
 
-          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE_PREFIX-backend:$GITHUB_SHA"
+
+          docker build \
+            --tag "$IMAGE_PREFIX-frontend:$GITHUB_SHA" \
+            ./pensieve-frontend
+
+          docker push "$IMAGE_PREFIX-frontend:$GITHUB_SHA"
