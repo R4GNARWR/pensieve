@@ -28,6 +28,6 @@ jobs:
 
           docker build \
             --tag "$IMAGE:${{ github.sha }}" \
-            ./penseve-backend
+            ./pensieve-backend
 
           docker push "$IMAGE:${{ github.sha }}"
