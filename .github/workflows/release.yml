@@ -24,7 +24,7 @@ jobs:
 
       - name: Build and push image
         run: |
-          IMAGE=ghcr.io/R4GNARWR/pensieve-backend
+          IMAGE=ghcr.io/r4gnarwr/pensieve-backend
 
           docker build \
             --tag "$IMAGE:${{ github.sha }}" \
