@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 permissions:
   contents: read
@@ -22,12 +22,18 @@ jobs:
               --username "${{ github.actor }}" \
               --password-stdin
 
-      - name: Build and push image
+      - name: Build and push application images
+        env:
+          IMAGE_PREFIX: ghcr.io/r4gnarwr/pensieve
         run: |
-          IMAGE=ghcr.io/R4GNARWR/pensieve-backend
+          docker build \
+            --tag "$IMAGE_PREFIX-backend:$GITHUB_SHA" \
+            ./pensieve-backend
+
+          docker push "$IMAGE_PREFIX-backend:$GITHUB_SHA"
 
           docker build \
-            --tag "$IMAGE:${{ github.sha }}" \
-            ./penseve-backend
+            --tag "$IMAGE_PREFIX-frontend:$GITHUB_SHA" \
+            ./pensieve-frontend
 
-          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE_PREFIX-frontend:$GITHUB_SHA"
