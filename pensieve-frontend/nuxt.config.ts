@@ -58,14 +58,12 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
-  nitro: {
-    routeRules: {
-      "/api/**": {
-        proxy: `${internalApiUrl}/api/**`,
-      },
-      "/uploads/**": {
-        proxy: `${internalApiUrl}/uploads/**`,
-      },
+  routeRules: {
+    "/api/**": {
+      proxy: `${internalApiUrl}/api/**`,
+    },
+    "/uploads/**": {
+      proxy: `${internalApiUrl}/uploads/**`,
     },
   },
 });

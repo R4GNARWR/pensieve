@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm i --no-audit --silent && \
+RUN npm ci --no-audit && \
     npm cache clean --force
 
 # Копируем остальные файлы проекта
@@ -32,7 +32,7 @@ COPY --from=builder --chown=appuser:appgroup /app/.output ./.output
 COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
 
 # Устанавливаем только продакшн-зависимости
-RUN npm i --only=production --no-audit --silent && \
+RUN npm ci --omit=dev --no-audit --silent && \
     npm cache clean --force
 
 # Указываем порт, который будет использовать приложение

@@ -1,4 +1,3 @@
 .env
-ssl/*.pem
-ssl/*.key
-ssl/*.crt
+.idea
+.vscode
