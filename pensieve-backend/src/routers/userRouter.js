@@ -163,7 +163,7 @@ router.get("/logout", authMiddleware, userController.logout);
  *           schema:
  *             type: object
  *             properties:
- *               refreshToken:
+ *               refresh_token:
  *                 type: string
  *     responses:
  *       200:

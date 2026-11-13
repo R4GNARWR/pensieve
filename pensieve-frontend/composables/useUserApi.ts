@@ -3,46 +3,23 @@ const { getRequest, postRequest } = useApi();
 import { useUserStore } from "~/stores/userStore";
 import { useSettingsStore } from "~/stores/settingsStore";
 
+/** Очищает локальную сессию и возвращает пользователя на главную */
 const clearUserData = async () => {
-  if (!import.meta.client) return;
-  const authCookie = useCookie("user_token");
   const userStore = useUserStore();
   userStore.user = null;
-  authCookie.value = null;
-  await navigateTo("/");
+  clearAuthTokens();
+  if (import.meta.client) await navigateTo("/");
 };
 
+/** Сохраняет пользователя и токены после входа или регистрации */
 const saveUserFromResponse = (data: any) => {
   const {
     user,
     access_token,
     refresh_token,
   }: { user: User; access_token: string; refresh_token: string } = data;
-  if (user && access_token) {
-    const userToken = useCookie(
-      "user_token",
-      import.meta.dev
-        ? {}
-        : {
-            secure: true,
-            sameSite: "strict",
-            maxAge: 60 * 60 * 24,
-          }
-    );
-    const refreshToken = useCookie(
-      "refresh_token",
-      import.meta.dev
-        ? {}
-        : {
-            secure: true,
-            sameSite: "strict",
-            maxAge: 60 * 60 * 24 * 7,
-          }
-    );
-    userToken.value = access_token;
-    if (refresh_token) {
-      refreshToken.value = refresh_token;
-    }
+  if (user && access_token && refresh_token) {
+    saveAuthTokens({ access_token, refresh_token });
     useUserStore().user = user;
     useSettingsStore().isAuthModalVisible = false;
     alert("Вы успешно авторизовались!");
@@ -89,6 +66,7 @@ export const useRegisterUser = async ({
   }
 };
 
+/** Восстанавливает пользователя и очищает сессию только при ошибке авторизации */
 export const useAuthorizeUser = async () => {
   const userStore = useUserStore();
   try {
@@ -97,19 +75,28 @@ export const useAuthorizeUser = async () => {
       userStore.user = response.value?.data;
       return;
     }
+    if (isAuthError(error.value)) {
+      await clearUserData();
+      return;
+    }
     if (error.value) {
       console.error("Authorization error:", error.value);
     }
   } catch (e) {
+    if (isAuthError(e)) {
+      await clearUserData();
+      return;
+    }
     console.error("Request failed:", e);
   }
-  clearUserData();
 };
 
+/** Отзывает серверные refresh-токены и очищает локальную сессию */
 export const useLogout = async () => {
   try {
-    await getRequest("/logout");
-    clearUserData();
+    const { error } = await getRequest("/logout");
+    if (error.value) throw error.value;
+    await clearUserData();
   } catch (error: any) {
     const message = error.data?.error?.message;
     if (message) alert(message);

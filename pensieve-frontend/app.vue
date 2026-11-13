@@ -6,8 +6,8 @@
 
 <script setup>
 const userStore = useUserStore();
-const userToken = useCookie('user_token');
-if (userToken.value && !userStore.user) {
+const { accessToken, refreshToken } = useAuthTokens();
+if ((accessToken.value || refreshToken.value) && !userStore.user) {
   await useAuthorizeUser();
 }
 if (userStore.user?.id) {
