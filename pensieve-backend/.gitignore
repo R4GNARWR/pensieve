@@ -1,7 +1,30 @@
-node_modules
-database.sqlite
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files
 .env
 .env.*
 !.env.example
+
+# Logs
+logs/
 *.log
-uploads
+npm-debug.log*
+
+# Runtime data
+uploads/
+database.sqlite
+database.sqlite-journal
+
+# Test coverage
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
