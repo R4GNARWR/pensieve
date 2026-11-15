@@ -1,13 +1,13 @@
 <template>
   <div class="menu-wrapper" v-show="isMenuVisible && isAuth">
-    <button class="close menu-close" @click="closeModal"></button>
+    <UIButton class="close menu-close" variant="icon" aria-label="Закрыть меню" @click="closeModal" />
     <div class="menu">
       <div class="menu-head">меню</div>
       <ul class="menu-links">
-        <li><button @click="openAddUserModal">Добавить пользователя</button></li>
+        <li><UIButton label="Добавить пользователя" variant="text" @click="openAddUserModal" /></li>
         <li><nuxt-link>Добавить запись</nuxt-link></li>
         <li><nuxt-link>Все архивы</nuxt-link></li>
-        <li><button @click="logout">Выйти</button></li>
+        <li><UIButton label="Выйти" variant="text" @click="logout" /></li>
       </ul>
     </div>
   </div>

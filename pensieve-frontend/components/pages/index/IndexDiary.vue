@@ -13,7 +13,7 @@
       />
       <div class="index-diary">
         <div class="index-diary-book">
-          <button class="btn" @click="openDiary">Открыть</button>
+          <UIButton label="Открыть" @click="openDiary" />
           <img src="/images/png/diaryBook.png" alt="" />
         </div>
         <img

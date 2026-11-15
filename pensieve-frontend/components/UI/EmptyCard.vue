@@ -1,8 +1,8 @@
 <template>
     <div class="card-main py-5 px-8" @click="openAddMemory">
-        <button class="card-main__button mb-5" @click="emit('onClosedClick')">
+        <UIButton class="card-main__button mb-5" variant="icon" aria-label="Добавить воспоминание" @click="emit('onClosedClick')">
             <img src="/images/svg/add.svg" alt="">
-        </button>
+        </UIButton>
         <div class="card-main__info">
             <div class="card-main__info-title mb-4">
                 Добавить воспоминание

@@ -13,25 +13,25 @@
           </div>
 
           <div v-else class="user-list">
-            <button
+            <UIButton
               v-for="user in users"
               :key="user.id"
               class="user-item"
+              variant="text"
               :class="{ selected: selectedUserId === user.id }"
               @click="selectedUserId = user.id"
             >
               <span class="user-name">{{ user.name }}</span>
               <span class="user-login">@{{ user.username }}</span>
-            </button>
+            </UIButton>
           </div>
 
-          <button
-            class="btn btn-white-pink"
+          <UIButton
+            label="Добавить"
+            variant="white-pink"
             :disabled="!selectedUserId"
             @click="addUser"
-          >
-            Добавить
-          </button>
+          />
         </div>
       </div>
     </div>

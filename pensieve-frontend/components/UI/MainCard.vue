@@ -1,12 +1,14 @@
 <template>
   <div class="card-main py-5 px-sm-8 px-6">
-    <button
+    <UIButton
+      v-show="photoLoading || !memory?.photo || !isMemoryActive"
       class="card-main__button mb-5"
-      v-show="!memory?.photo || !isMemoryActive"
+      variant="icon"
+      :loading="photoLoading"
       @click="emit('onClosedClick')"
     >
       <img src="/images/svg/lock.svg" alt="" />
-    </button>
+    </UIButton>
     <div class="card-main__image mb-5" v-show="memory?.photo && isMemoryActive">
       <img
         :src="`${staticUrl}uploads/${memory?.photo}`"
@@ -32,9 +34,11 @@ const props = withDefaults(
   defineProps<{
     memory: Omit<Memory, "id"> | Memory;
     insertMode?: boolean;
+    photoLoading?: boolean;
   }>(),
   {
     insertMode: false,
+    photoLoading: false,
   },
 );
 
@@ -42,7 +46,7 @@ const emit = defineEmits(["onClosedClick"]);
 const currentYear = new Date().getFullYear();
 
 const isMemoryActive = computed(() => {
-  return new Date(props.memory?.date) > new Date() || props.insertMode ? true : false;
+  return new Date(props.memory?.date) > new Date() || props.insertMode;
 });
 
 const computedName = computed(() => {

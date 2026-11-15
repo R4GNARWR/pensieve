@@ -8,7 +8,7 @@
                 всего 24 воспоминания
             </div>
         </div>
-        <button class="archive-item__btn btn-cloud btn-cloud-white">Открыть</button>
+        <UIButton class="archive-item__btn" label="Открыть" variant="cloud-white" />
     </div>
 </template>
 
@@ -41,12 +41,10 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
-    // archive-item__header-title
     &-title {
         font-size: rems(32px);
         line-height: 1em;
     }
-    // archive-item__header-count
     &-count {
         font-size: rems(20px);
         line-height: 1em;

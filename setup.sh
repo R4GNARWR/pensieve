@@ -45,7 +45,10 @@ EOF
 echo ""
 echo "Secrets generated"
 echo "Starting Pensieve (first build may take a few minutes)..."
-docker compose up -d --build
+docker compose build backend
+docker compose up -d db
+docker compose run --rm backend npm run migrate
+docker compose up -d
 
 # Wait for server (up to 2 minutes)
 echo "Waiting for server..."

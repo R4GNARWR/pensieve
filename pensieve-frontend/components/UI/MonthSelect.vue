@@ -30,7 +30,7 @@ const monthes = [
 const computedMonthes = computed(() => {
     if(!memories.value) return monthes;
     const memoriesObj = memories.value;
-    const monthesToReturn = [...monthes]
+    const monthesToReturn = monthes.map((month) => ({ ...month }));
     for (const month of monthesToReturn) {
         if (memoriesObj[month.value]) {
             month.title += `<sup>${memoriesObj[month.value].length}</sup>`

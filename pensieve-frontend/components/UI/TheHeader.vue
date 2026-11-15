@@ -1,19 +1,19 @@
 <template>
   <header>
-    <button
-      class="btn btn-white-pink me-auto"
-      @click="openMenu"
+    <UIButton
       v-show="userData"
-    >
-      Меню
-    </button>
-    <button
-      class="btn btn-white-pink ms-auto"
-      @click="openAuthModal"
+      class="me-auto"
+      label="Меню"
+      variant="white-pink"
+      @click="openMenu"
+    />
+    <UIButton
       v-show="!userData"
-    >
-      Вход
-    </button>
+      class="ms-auto"
+      label="Вход"
+      variant="white-pink"
+      @click="openAuthModal"
+    />
   </header>
 </template>
 

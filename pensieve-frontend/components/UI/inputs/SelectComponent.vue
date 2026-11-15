@@ -8,7 +8,9 @@
     <div class="select-list__bg">
       <ul class="select-list" v-show="isOpened">
         <li v-for="item in list" :key="item.value">
-          <button @click="selectItem(item)" v-html="item.title"></button>
+          <UIButton variant="text" @click="selectItem(item)">
+            <span v-html="item.title"></span>
+          </UIButton>
         </li>
       </ul>
     </div>

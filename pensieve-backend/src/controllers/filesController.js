@@ -4,6 +4,8 @@ import ApiResponse from "../utils/apiResponse.js";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs";
+import { fileTypeFromBuffer } from "file-type";
+import { UPLOADS_DIRECTORY } from "../constants/photos.js";
 
 class filesController {
   async uploadPhoto(req, res) {
@@ -25,10 +27,14 @@ class filesController {
         height
       );
       const hash = crypto.randomBytes(20).toString("hex");
-      const ext = path.extname(req.file.originalname);
+      const imageType = await fileTypeFromBuffer(compressedImageBuffer);
+      if (!imageType || !["image/jpeg", "image/png"].includes(imageType.mime)) {
+        throw new Error("Неподдерживаемый формат обработанного изображения");
+      }
+      const ext = imageType.mime === "image/jpeg" ? ".jpg" : ".png";
 
       // Сохраняем сжатый файл на диск
-      const filePath = path.join("uploads", hash + ext);
+      const filePath = path.join(UPLOADS_DIRECTORY, hash + ext);
       fs.writeFileSync(filePath, compressedImageBuffer);
       res.status(201).json(
         ApiResponse.success({file: hash + ext,},201)

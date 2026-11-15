@@ -1,6 +1,5 @@
-const { postRequest } = useApi();
-
 export const useLoadPhoto = async (photo: File) => {
+  const { postRequest } = useApi();
   const formData = new FormData();
   formData.append("photo", photo);
 
@@ -13,8 +12,8 @@ export const useLoadPhoto = async (photo: File) => {
     if (response.file) {
       return response.file;
     }
-  } catch (e) {
-    console.error("Photo upload failed:", e);
-    throw new Error("Failed to upload photo");
+  } catch (error) {
+    console.error("Photo upload failed:", error);
+    throw error;
   }
 };

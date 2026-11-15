@@ -1,4 +1,6 @@
 @use 'sass:color';
+@use './reset';
+@use './fonts';
 
 @mixin button-styles($bg-color, $color, $border-color, $bg-hover-color, $color-hover-color, $border-hover-color) {
     $button-padding: rems(15px) rems(50px);
@@ -31,7 +33,7 @@
 }
 
 body {
-    font-family: 'Hidden-Cinema';
+    font-family: 'Hidden-Cinema', sans-serif;
 }
 
 main {
@@ -158,7 +160,7 @@ main {
     justify-content: center;
     background-color: #FFFFFF;
     border-radius: 5px;
-    box-shadow: 0px 6px 10px 3px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 6px 10px 3px rgba(0, 0, 0, 0.25);
 }
 
 .card-main__info-title {

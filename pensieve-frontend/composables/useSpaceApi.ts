@@ -1,7 +1,7 @@
 import type { Space } from "~/types/Space";
-const { getRequest, postRequest } = useApi();
 
 export const useGetSpaces = async () => {
+  const { getRequest } = useApi();
   const spaceStore = useSpaceStore();
   try {
     const { data: spaceResponse, error } = await getRequest<Space[]>("/space", {
@@ -22,10 +22,12 @@ export const useGetSpaces = async () => {
 };
 
 export const useCreateSpace = async (name: string) => {
+  const { postRequest } = useApi();
   postRequest("/space", { body: { name } }).then(() => {});
 };
 
 export const useAddUserToSpace = async (spaceId: number, userId: number) => {
+  const { postRequest } = useApi();
   try {
     await postRequest("/space/add", { body: { spaceId, userId } });
   } catch (error: any) {

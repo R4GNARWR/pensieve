@@ -15,6 +15,8 @@ import photosRouter from "./routers/photosRouter.js";
 import User from "./models/user.js";
 import Space from "./models/space.js";
 import Memory from "./models/memory.js";
+import { UPLOADS_DIRECTORY } from "./constants/photos.js";
+import { startPhotoCleanup } from "./services/photo-cleanup.js";
 
 const isProduction = process.env.NODE_ENV === "production";
 const apisPath = isProduction ? "./dist/routers/*.js" : "./src/routers/*.js";
@@ -38,8 +40,7 @@ const swaggerSpec = swaggerJSDoc({
 const SERVER_PORT = process.env.SERVER_PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost";
 
-const UPLOADS_DIR = "uploads";
-fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+fs.mkdirSync(UPLOADS_DIRECTORY, { recursive: true });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -50,6 +51,10 @@ const authLimiter = rateLimit({
 });
 
 const app = express();
+
+// Приложение работает за nginx, поэтому доверяем одному уровню прокси,
+// чтобы express-rate-limit видел реальный IP клиента из X-Forwarded-For.
+app.set("trust proxy", 1);
 
 app.use(
   cors({
@@ -64,7 +69,7 @@ app.use(
   })
 );
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(UPLOADS_DIRECTORY));
 app.use("/api/login", authLimiter);
 app.use("/api/register", authLimiter);
 app.use("/api/refresh", authLimiter);
@@ -73,10 +78,14 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 async function startApp() {
   try {
-    sequelize.sync().then(() => {
-      app.listen(SERVER_PORT, () => {
-        console.log(`Сервер запущен на http://localhost:${SERVER_PORT}`);
-      });
+    if (isProduction) {
+      await sequelize.authenticate();
+    } else {
+      await sequelize.sync();
+    }
+    startPhotoCleanup();
+    app.listen(SERVER_PORT, () => {
+      console.log(`Сервер запущен на http://localhost:${SERVER_PORT}`);
     });
   } catch (error) {
     console.log(error);

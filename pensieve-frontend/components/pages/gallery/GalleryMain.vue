@@ -9,7 +9,7 @@
       ></MonthSelect>
       <YearsSelect
         @on-change="changeYear($event.value)"
-        :model-value="selectedYear"
+          :model-value="selectedStoreYear"
       ></YearsSelect>
     </div>
 
@@ -32,12 +32,12 @@
           class="gallery-main__arrows"
           v-show="currentMonthMemories?.length > 2"
         >
-          <button @click="changePage(-1)">
-            <img src="/images/svg/arrow-bold.svg" alt="Предыдущая страница" />
-          </button>
-          <button @click="changePage(1)">
-            <img src="/images/svg/arrow-bold.svg" alt="Следующая страница" />
-          </button>
+          <UIButton variant="icon" aria-label="Предыдущая страница" @click="changePage(-1)">
+            <img src="/images/svg/arrow-bold.svg" alt="" />
+          </UIButton>
+          <UIButton variant="icon" aria-label="Следующая страница" @click="changePage(1)">
+            <img src="/images/svg/arrow-bold.svg" alt="" />
+          </UIButton>
         </div>
       </div>
     </div>
@@ -55,8 +55,6 @@ const props = defineProps<{
 const selectedStoreYear: ComputedRef<number> = computed(
   () => settingsStore.selectedYear
 );
-const selectedYear: Ref<number | null> = ref(new Date().getFullYear());
-
 const selectedMonth: Ref<number | null> = ref(new Date().getMonth() + 1);
 const currentMonthMemories = computed(() => {
   return selectedMonth.value
@@ -64,9 +62,8 @@ const currentMonthMemories = computed(() => {
     : [];
 });
 
-const currentSpaceId = computed(() => spaceStore.selectedSpaceId);
-
 const currentPage: Ref<number> = ref(1);
+watch(() => spaceStore.selectedSpaceId, () => { currentPage.value = 1; });
 const totalPages = computed(() => {
   return Math.ceil(currentMonthMemories.value.length / 2);
 });
@@ -83,10 +80,9 @@ const changePage = (value: number) => {
   }
 };
 
-const changeYear = async (year: number) => {
+const changeYear = (year: number) => {
   currentPage.value = 1;
   settingsStore.selectedYear = year;
-  if (currentSpaceId.value) await useGetMemories(currentSpaceId.value, year);
 };
 </script>
 
@@ -105,11 +101,10 @@ const changeYear = async (year: number) => {
 
   @media (max-width: 1000px) {
     width: 100%;
-    aspect-ratio: none;
+    aspect-ratio: auto;
     background: transparent;
   }
 
-  // .gallery-main__wrapper
   &__wrapper {
     margin: 0 -20px;
     position: absolute;
@@ -142,7 +137,6 @@ const changeYear = async (year: number) => {
       grid-template-columns: repeat(1, 1fr);
     }
 
-    // .gallery-main__wrapper-item
     &-item {
       padding: 0 20px;
       width: 50%;
@@ -157,7 +151,6 @@ const changeYear = async (year: number) => {
     }
   }
 
-  // .gallery-main__arrow
   &__arrows {
     padding: 0 20px;
     position: absolute;

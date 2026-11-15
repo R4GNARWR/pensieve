@@ -1,8 +1,9 @@
 <template>
     <section id="galleryPage">
         <div class="gallery-page__header">
-            <h2>2025 год</h2>
+            <h2>{{ selectedYear }} год</h2>
             <p>всего {{ totalMemoriesCount }} воспоминания</p>
+            <p v-if="loadError" role="alert">{{ loadError }}</p>
         </div>
         <GalleryMain :memories="memories"></GalleryMain>
     </section>
@@ -11,34 +12,43 @@
 
 <script setup lang="ts">
 const spaceStore = useSpaceStore();
+const settingsStore = useSettingsStore();
 const memoriesStore = useMemoriesStore();
+const selectedYear = computed(() => settingsStore.selectedYear);
 const selectedSpaceId = computed(() => spaceStore.selectedSpaceId);
 const memories = computed(() => memoriesStore.memories)
+const loadError = ref("");
+let requestId = 0;
+onScopeDispose(() => { requestId++; });
 
-const totalMemoriesCount = computed(() => {
-    let total = 0;
-    const memoriesObj = memories.value;
-    for (const key in memoriesObj) {
-        if (memoriesObj.hasOwnProperty(key)) {
-            const value = memoriesObj[key];
-            if (Array.isArray(value)) {
-                total += value.length;
-            }
+const totalMemoriesCount = computed(() =>
+    Object.values(memories.value[selectedYear.value] ?? {})
+        .reduce((total, items) => total + items.length, 0)
+);
+
+watch(
+    [selectedSpaceId, selectedYear, () => memoriesStore.refreshVersion],
+    async ([spaceId, year], previous) => {
+        const currentRequest = ++requestId;
+        loadError.value = "";
+        if (!previous || previous[0] !== spaceId) {
+            memoriesStore.memories = {};
         }
-    }
-    return total;
-})
+        if (!spaceId) return;
 
-watch(selectedSpaceId, async (newSpaceID) => {
-    if (!newSpaceID) return;
-    const currentYear = new Date().getFullYear()
-    const { data: response } = await useGetMemories(newSpaceID);
-    if (response.value?.data) {
-        memoriesStore.memories[currentYear] = response.value.data;
-    } else {
-        console.debug('Не пришло ни одного воспоминания')
-    }
-}, { immediate: true })
+        try {
+            const { data: response, error } = await useGetMemories(spaceId, year);
+            if (currentRequest !== requestId) return;
+            if (error.value && getErrorStatus(error.value) !== 404) throw error.value;
+            memoriesStore.memories[year] = response.value?.data ?? {};
+        } catch (error) {
+            if (currentRequest !== requestId) return;
+            delete memoriesStore.memories[year];
+            loadError.value = "Не удалось загрузить воспоминания";
+        }
+    },
+    { immediate: true, flush: "sync" }
+);
 </script>
 
 <style lang="scss">

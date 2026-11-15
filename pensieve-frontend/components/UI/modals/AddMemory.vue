@@ -1,9 +1,7 @@
 <template>
   <section id="addMemory" v-if="isVisible">
     <div class="d-flex w-100 h-100 flex-column align-center" @touchstart.stop>
-      <button class="close" @click="closeModal">
-        Закрыть
-      </button>
+      <UIButton class="close" label="Закрыть" variant="text" :disabled="isSaving || isPhotoUploading" @click="closeModal" />
       <div class="addMemory-card">
         <div class="d-flex addMemory-card__wrap justify-between flex-grow-1 ga-8">
           <div class="addMemory-card__desk ga-4">
@@ -29,16 +27,44 @@
             </div>
           </div>
           <div class="addMemory-card__photo flex-shrink-0">
-            <MainCard class="mb-8" @onClosedClick="attachPhoto" :memory="memoryData" :insert-mode="true"></MainCard>
-            <button class="dashed-line"><input ref="attachPhotoInput" type="file" @input="uploadPhoto">Прикрепить
-              фото</button>
+            <MainCard
+              class="mb-8"
+              :memory="memoryData"
+              :insert-mode="true"
+              :photo-loading="isPhotoUploading"
+              @onClosedClick="attachPhoto"
+            ></MainCard>
+            <UIButton
+              class="dashed-line addMemory-card__upload"
+              variant="text"
+              :loading="isPhotoUploading"
+              :disabled="isSaving"
+            >
+              <input
+                ref="attachPhotoInput"
+                type="file"
+                accept="image/jpeg,image/png"
+                :disabled="isPhotoUploading || isSaving"
+                @input="uploadPhoto"
+              >
+              <span>Прикрепить фото</span>
+            </UIButton>
           </div>
         </div>
         <div class="d-flex justify-center">
-          <button class="btn-cloud btn-cloud-pink" style="width: 280px;" @click="addMemory">Сохранить</button>
+          <UIButton
+            label="Сохранить"
+            variant="cloud-pink"
+            style="width: 280px;"
+            :disabled="isPhotoUploading"
+            :loading="isSaving"
+            @click="addMemory"
+          />
         </div>
       </div>
     </div>
+    <ErrorPopup :message="uploadError" @close="uploadError = ''" />
+    <ErrorPopup title="Не удалось сохранить воспоминание" :message="saveError" @close="saveError = ''" />
   </section>
 </template>
 
@@ -53,6 +79,10 @@ const isVisible = computed(() => settingsStore.isAddMemoryModalVisible);
 const selectedSpaceId: ComputedRef<number | null> = computed(() => spaceStore.selectedSpaceId);
 
 const attachPhotoInput: Ref<HTMLInputElement | null> = ref(null);
+const isPhotoUploading = ref(false);
+const uploadError = ref("");
+const isSaving = ref(false);
+const saveError = ref("");
 
 const memoryData: Ref<Omit<Memory, 'id'>> = ref({
   date: '',
@@ -62,38 +92,56 @@ const memoryData: Ref<Omit<Memory, 'id'>> = ref({
 });
 
 const closeModal = () => {
+  if (isSaving.value || isPhotoUploading.value) return;
   settingsStore.isAddMemoryModalVisible = false;
 }
 
 const addMemory = async () => {
-  if (memoryData.value && selectedSpaceId.value) {
-    const response = await useCreateMemory(memoryData.value, selectedSpaceId.value);
-    if (response.success) {
-      settingsStore.isAddMemoryModalVisible = false;
-      const currentYear = new Date().getFullYear();
-      const { data: memoriesResponse } = await useGetMemories(selectedSpaceId.value);
-      if (memoriesResponse.value?.data) {
-        memoriesStore.memories[currentYear] = memoriesResponse.value.data;
-      }
-    } else {
-      alert(response.data);
+  const spaceId = selectedSpaceId.value;
+  if (!spaceId || isPhotoUploading.value || isSaving.value) return;
+
+  isSaving.value = true;
+  saveError.value = "";
+  try {
+    await useCreateMemory(memoryData.value, spaceId);
+    memoryData.value = { date: '', name: '', description: '', photo: '' };
+    settingsStore.isAddMemoryModalVisible = false;
+    if (selectedSpaceId.value === spaceId) {
+      memoriesStore.refreshVersion++;
     }
+  } catch (error: any) {
+    saveError.value = error?.data?.error?.message || "Попробуйте ещё раз";
+  } finally {
+    isSaving.value = false;
   }
 }
 
 const uploadPhoto = async (event: Event) => {
   const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file || isPhotoUploading.value) return;
 
-  if (!target || !target.files || target.files.length === 0) {
-    console.log('No target or files');
-    return;
+  isPhotoUploading.value = true;
+  uploadError.value = "";
+  try {
+    const photo = await useLoadPhoto(file);
+    if (!photo) throw new Error("Сервер не вернул имя файла");
+    memoryData.value.photo = photo;
+  } catch (error: any) {
+    const apiError = error?.data?.error;
+    uploadError.value =
+      apiError?.message ||
+      (typeof apiError === "string" ? apiError : null) ||
+      error?.message ||
+      "Проверьте файл и попробуйте ещё раз";
+  } finally {
+    isPhotoUploading.value = false;
+    target.value = "";
   }
-  const file = target.files[0];
-  // @ts-ignore
-  memoryData.value.photo = await useLoadPhoto(file);
 }
 
 const attachPhoto = () => {
+  if (isSaving.value || isPhotoUploading.value) return;
   attachPhotoInput.value?.click();
 }
 </script>
@@ -159,7 +207,6 @@ const attachPhoto = () => {
     }
   }
 
-  // .addMemory-card__desk
   &__desk {
     width: 100%;
     height: 100%;
@@ -184,7 +231,6 @@ const attachPhoto = () => {
     }
   }
 
-  // .addMemory-card__photo
   &__photo {
     width: 33%;
     display: flex;
@@ -203,6 +249,10 @@ const attachPhoto = () => {
 
     button {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
       font-size: rems(36px);
       color: inherit;
       text-decoration: none;

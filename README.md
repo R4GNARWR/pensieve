@@ -50,10 +50,26 @@ All variables live in `.env` (created by `setup.sh`).
 
 ## Updating
 
+Create a backup before updating. Then build the backend, stop the old application, apply pending migrations, and start the new version:
+
 ```bash
 git pull
-docker compose up -d --build
+docker compose build backend
+docker compose stop backend
+docker compose run --rm backend npm run migrate
+docker compose up -d
 ```
+
+To inspect migration status or roll back the latest reversible migration:
+
+```bash
+docker compose run --rm backend npm run migrate:status
+docker compose run --rm backend npm run migrate:down
+```
+
+The initial-schema migration is intentionally irreversible because it also acts as a baseline for existing databases. Do not use migration rollback to rebuild a local database; use a separate clean database instead.
+
+The `refresh.userId` migration deletes existing refresh tokens. Users will need to sign in again after this update; access tokens remain valid until they expire.
 
 ## Backup
 

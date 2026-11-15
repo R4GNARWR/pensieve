@@ -1,13 +1,12 @@
-import { validationResult } from "express-validator";
+import {validationResult} from "express-validator";
 import ApiResponse from "../utils/apiResponse.js";
 import UserSpaces from "../models/userSpaces.js";
 import Memory from "../models/memory.js";
 import Space from "../models/space.js";
-import { Op } from "sequelize";
+import {Op} from "sequelize";
 
 const getMonth = (date) => {
-  const month = new Date(date).getMonth() + 1;
-  return month;
+  return new Date(date).getMonth() + 1;
 };
 
 class spaceController {
@@ -19,7 +18,7 @@ class spaceController {
           .status(400)
           .json(ApiResponse.error(errors.array()[0].msg, 400));
       }
-      const { spaceId } = req.query;
+      const spaceId = Number(req.query.spaceId);
       const year = req.query.year || new Date().getFullYear();
       const userId = req.user?.id;
       if (!spaceId) {
@@ -36,15 +35,15 @@ class spaceController {
         where: { userId, spaceId },
       });
       // Проверка на наличие доступа к пространству
-      let hasAccess = false;
+      let hasAccess;
       if (Array.isArray(findedUserSpaces)) {
         hasAccess = findedUserSpaces.some(
-          (el) => el.userId == userId && el.spaceId == spaceId
+          (el) => el.userId === userId && el.spaceId === spaceId
         );
       } else {
         hasAccess =
-          findedUserSpaces.userId == userId &&
-          findedUserSpaces.spaceId == spaceId;
+          findedUserSpaces.userId === userId &&
+          findedUserSpaces.spaceId === spaceId;
       }
       if (!hasAccess) {
         return res
@@ -103,6 +102,12 @@ class spaceController {
         return res
           .status(404)
           .json(ApiResponse.error("Пространство не найдено", 404));
+      }
+      const membership = await UserSpaces.findOne({ where: { userId, spaceId } });
+      if (!membership) {
+        return res
+          .status(403)
+          .json(ApiResponse.error("У вас нет доступа к этому пространству", 403));
       }
       const thisDateMemory = await Memory.findOne({ where: { date, spaceId } });
       if (thisDateMemory) {

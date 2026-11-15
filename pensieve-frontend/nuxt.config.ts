@@ -1,4 +1,3 @@
-// nuxt.config.ts
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 const internalApiUrl =
@@ -30,8 +29,6 @@ export default defineNuxtConfig({
           @use "~/assets/scss/_functions.scss" as *;
           @use "~/assets/scss/_mixins.scss" as *;
           @use "~/assets/scss/_vars.scss" as *;
-          @use "~/assets/scss/_reset.scss" as *;
-          @use "~/assets/scss/_fonts.scss" as *;
           `,
         },
       },

@@ -9,19 +9,18 @@
         <div class="auth-close" @click="closeModal"></div>
         <div class="auth-modal__content">
           <template v-if="currentTab === ''">
-            <button
-              class="btn-auth text-primary-pink"
+            <UIButton
+              label="Регистрация"
+              variant="auth"
               @click="currentTab = 'registration'"
-            >
-              Регистрация
-            </button>
-            <span>Или</span>
-            <button
-              class="btn-auth text-primary-pink mb-0"
+            />
+            <span class="auth-modal__content-divider">Или</span>
+            <UIButton
+              class="mb-0"
+              label="Вход"
+              variant="auth"
               @click="currentTab = 'login'"
-            >
-              Вход
-            </button>
+            />
           </template>
           <template v-if="currentTab === 'registration'">
             <h2 class="text-center">Регистрация</h2>
@@ -41,9 +40,7 @@
               type="password"
               v-model="password"
             ></TheInput>
-            <button class="btn btn-white-pink" @click="register">
-              Отправить
-            </button>
+            <UIButton label="Отправить" variant="white-pink" @click="register" />
           </template>
           <template v-if="currentTab === 'login'">
             <h2 class="text-center">Вход</h2>
@@ -53,9 +50,7 @@
               v-model="password"
               type="password"
             ></TheInput>
-            <button class="btn btn-white-pink" @click="authorize">
-              Отправить
-            </button>
+            <UIButton label="Отправить" variant="white-pink" @click="authorize" />
           </template>
         </div>
       </div>
@@ -137,7 +132,7 @@ const register = () => {
     }
   }
 
-  span {
+  &__content-divider {
     font-size: rems(20px);
     line-height: 1em;
     text-align: center;

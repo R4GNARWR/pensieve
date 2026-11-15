@@ -1,5 +1,4 @@
 import type { User } from "~/types/User";
-const { getRequest, postRequest } = useApi();
 import { useUserStore } from "~/stores/userStore";
 import { useSettingsStore } from "~/stores/settingsStore";
 
@@ -35,6 +34,7 @@ export const useAuthenticateUser = async ({
   username: string;
   password: string;
 }) => {
+  const { postRequest } = useApi();
   try {
     const response: any = await postRequest("/login", {
       body: { username, password },
@@ -55,6 +55,7 @@ export const useRegisterUser = async ({
   username: string;
   password: string;
 }) => {
+  const { postRequest } = useApi();
   try {
     const response: any = await postRequest("/register", {
       body: { name, username, password },
@@ -68,6 +69,7 @@ export const useRegisterUser = async ({
 
 /** Восстанавливает пользователя и очищает сессию только при ошибке авторизации */
 export const useAuthorizeUser = async () => {
+  const { getRequest } = useApi();
   const userStore = useUserStore();
   try {
     const { data: response, error } = await getRequest<User>("/authorize");
@@ -93,6 +95,7 @@ export const useAuthorizeUser = async () => {
 
 /** Отзывает серверные refresh-токены и очищает локальную сессию */
 export const useLogout = async () => {
+  const { getRequest } = useApi();
   try {
     const { error } = await getRequest("/logout");
     if (error.value) throw error.value;
@@ -104,6 +107,7 @@ export const useLogout = async () => {
 };
 
 export const useGetAllUsers = async (): Promise<User[]> => {
+  const { getRequest } = useApi();
   try {
     const { data: response } = await getRequest<User[]>("/users");
     return response.value?.data ?? [];
