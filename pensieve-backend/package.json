@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/app.js",
-    "migrate": "node dist/migrate.js up",
-    "migrate:status": "node dist/migrate.js status",
-    "migrate:down": "node dist/migrate.js down",
+    "start": "node --env-file-if-exists=.env dist/app.js",
+    "migrate": "node --env-file-if-exists=.env dist/migrate.js up",
+    "migrate:status": "node --env-file-if-exists=.env dist/migrate.js status",
+    "migrate:down": "node --env-file-if-exists=.env dist/migrate.js down",
     "dev": "nodemon --watch '*.ts' --exec tsx --env-file=.env src/app.ts"
   },
   "dependencies": {
