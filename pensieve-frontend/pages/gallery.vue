@@ -7,7 +7,7 @@
         </div>
         <GalleryMain :memories="memories"></GalleryMain>
     </section>
-    <AddMemory></AddMemory>
+  <AddMemory v-if="settingsStore.isAddMemoryModalVisible"/>
 </template>
 
 <script setup lang="ts">

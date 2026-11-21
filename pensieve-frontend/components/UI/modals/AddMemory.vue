@@ -1,5 +1,5 @@
 <template>
-  <section id="addMemory" v-if="isVisible">
+  <section id="addMemory">
     <div class="d-flex w-100 h-100 flex-column align-center" @touchstart.stop>
       <UIButton class="close" label="Закрыть" variant="text" :disabled="isSaving || isPhotoUploading" @click="closeModal" />
       <div class="addMemory-card">
@@ -75,7 +75,6 @@ const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
 const memoriesStore = useMemoriesStore();
 
-const isVisible = computed(() => settingsStore.isAddMemoryModalVisible);
 const selectedSpaceId: ComputedRef<number | null> = computed(() => spaceStore.selectedSpaceId);
 
 const attachPhotoInput: Ref<HTMLInputElement | null> = ref(null);
@@ -110,7 +109,6 @@ const addMemory = async () => {
     }
 
     await useCreateMemory(memoryData.value, spaceId);
-    memoryData.value = { date: '', name: '', description: '', photo: '' };
     settingsStore.isAddMemoryModalVisible = false;
     if (selectedSpaceId.value === spaceId) {
       memoriesStore.refreshVersion++;

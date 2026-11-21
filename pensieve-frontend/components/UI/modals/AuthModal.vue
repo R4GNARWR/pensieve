@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-base__wrap" @touchstart="closeModal" v-if="isVisible">
+  <div class="modal-base__wrap" @touchstart="closeModal">
     <div
       class="auth-modal__wrap"
       :class="{ big: currentTab === 'login' }"
@@ -62,11 +62,15 @@ const currentTab = ref("");
 const username = ref("");
 const password = ref("");
 const name = ref("");
-const isVisible = computed(() => useSettingsStore().isAuthModalVisible);
+
+watch(currentTab, () => {
+  username.value = "";
+  password.value = "";
+  name.value = "";
+});
 
 const closeModal = () => {
   useSettingsStore().isAuthModalVisible = false;
-  currentTab.value = "";
 };
 
 const authorize = () => {

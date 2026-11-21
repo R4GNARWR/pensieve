@@ -6,11 +6,11 @@
         v-model="selectedMonth"
         class="mx-auto"
         @on-change="currentPage = 1"
-      ></MonthSelect>
+      />
       <YearsSelect
-        @on-change="changeYear($event.value)"
           :model-value="selectedStoreYear"
-      ></YearsSelect>
+          @on-change="changeYear($event.value)"
+      />
     </div>
 
     <div class="gallery-main">

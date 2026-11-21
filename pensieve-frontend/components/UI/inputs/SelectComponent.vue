@@ -1,5 +1,9 @@
 <template>
-  <div class="select-wrap" :class="{ expanded: isOpened }">
+  <div
+      v-click-outside="closeList"
+      class="select-wrap"
+      :class="{ expanded: isOpened }"
+  >
     <div
       class="select-head"
       @click="isOpened = !isOpened"
@@ -18,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import {ClickOutside as vClickOutside} from "vuetify/directives";
 import type { listItem } from "~/types/Select";
 const isOpened: Ref<boolean> = ref(false);
 const modelValue = defineModel<string | number | null>();
@@ -41,9 +46,13 @@ const props = withDefaults(
   }
 );
 
+const closeList = () => {
+  isOpened.value = false;
+};
+
 const selectItem = (item: listItem) => {
   modelValue.value = item.value;
-  isOpened.value = false;
+  closeList();
   emit("onChange", item);
 };
 </script>
@@ -70,6 +79,7 @@ const selectItem = (item: listItem) => {
 
 .select-head {
   position: relative;
+  cursor: pointer;
   z-index: 1;
 }
 
