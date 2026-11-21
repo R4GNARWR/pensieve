@@ -97,12 +97,18 @@ const closeModal = () => {
 }
 
 const addMemory = async () => {
-  const spaceId = selectedSpaceId.value;
-  if (!spaceId || isPhotoUploading.value || isSaving.value) return;
+  if (isPhotoUploading.value || isSaving.value) return;
 
   isSaving.value = true;
   saveError.value = "";
   try {
+    if (!selectedSpaceId.value) await useGetSpaces();
+    const spaceId = selectedSpaceId.value;
+    if (!spaceId) {
+      saveError.value = "Не удалось загрузить пространство. Попробуйте ещё раз";
+      return;
+    }
+
     await useCreateMemory(memoryData.value, spaceId);
     memoryData.value = { date: '', name: '', description: '', photo: '' };
     settingsStore.isAddMemoryModalVisible = false;
