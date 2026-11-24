@@ -6,7 +6,7 @@ import Space from "../models/space.js";
 import {Op} from "sequelize";
 
 const getMonth = (date) => {
-  return new Date(date).getMonth() + 1;
+  return new Date(date).getUTCMonth() + 1;
 };
 
 class spaceController {

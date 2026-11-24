@@ -1,7 +1,7 @@
 <template>
   <div class="card-main py-5 px-sm-8 px-6">
     <UIButton
-      v-show="photoLoading || !memory?.photo || !isMemoryActive"
+        v-if="insertMode && (photoLoading || !memory?.photo)"
       class="card-main__button mb-5"
       variant="icon"
       :loading="photoLoading"
@@ -9,15 +9,16 @@
     >
       <img src="/images/svg/lock.svg" alt="" />
     </UIButton>
-    <div class="card-main__image mb-5" v-show="memory?.photo && isMemoryActive">
+    <div v-if="!insertMode && !memory?.photo" class="card-main__button mb-5" aria-hidden="true"></div>
+    <div v-if="memory?.photo" class="card-main__image mb-5">
       <img
-        :src="`${staticUrl}uploads/${memory?.photo}`"
+          :src="`${staticUrl}uploads/${memory.photo}`"
         :alt="memory?.name ?? ''"
       />
     </div>
     <div class="card-main__info">
       <div class="card-main__info-title mb-4">
-        {{ computedName }}
+        {{ memory.name }}
       </div>
       <div class="card-main__info-date">
         {{ computedDate }}
@@ -43,18 +44,6 @@ const props = withDefaults(
 );
 
 const emit = defineEmits(["onClosedClick"]);
-const currentYear = new Date().getFullYear();
-
-const isMemoryActive = computed(() => {
-  return new Date(props.memory?.date) > new Date() || props.insertMode;
-});
-
-const computedName = computed(() => {
-  if (props.insertMode || isMemoryActive.value) {
-    return props?.memory.name;
-  }
-  return `Откроется в ${currentYear + 1}`;
-});
 
 const computedDate = computed(() =>
   props.memory?.date
@@ -62,6 +51,7 @@ const computedDate = computed(() =>
         year: "2-digit",
         month: "2-digit",
         day: "2-digit",
+        timeZone: "UTC",
       })
     : null,
 );

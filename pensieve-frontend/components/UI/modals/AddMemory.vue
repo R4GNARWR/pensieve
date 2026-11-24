@@ -9,7 +9,15 @@
             <div class="d-flex ga-3 align-center addMemory-card__desk-text">
               <span>Дата:</span>
               <div class="flex-grow-1 dashed-line">
-                <input v-model="memoryData.date" class="clear-input w-100" type="date">
+                <input
+                    ref="memoryDateInput"
+                    v-model="memoryData.date"
+                    class="clear-input w-100"
+                    type="date"
+                    :min="minMemoryDate"
+                    :max="maxMemoryDate"
+                    required
+                >
               </div>
             </div>
             <div class="d-flex ga-3 align-center addMemory-card__desk-text">
@@ -70,6 +78,7 @@
 
 <script setup lang="ts">
 import type { Memory } from '~/types/Memory';
+import {MIN_MEMORY_YEAR} from '~/constants/memoryDates';
 
 const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
@@ -77,6 +86,9 @@ const memoriesStore = useMemoriesStore();
 
 const selectedSpaceId: ComputedRef<number | null> = computed(() => spaceStore.selectedSpaceId);
 
+const memoryDateInput: Ref<HTMLInputElement | null> = ref(null);
+const minMemoryDate = `${MIN_MEMORY_YEAR}-01-01`;
+const maxMemoryDate = `${new Date().getFullYear()}-12-31`;
 const attachPhotoInput: Ref<HTMLInputElement | null> = ref(null);
 const isPhotoUploading = ref(false);
 const uploadError = ref("");
@@ -97,6 +109,7 @@ const closeModal = () => {
 
 const addMemory = async () => {
   if (isPhotoUploading.value || isSaving.value) return;
+  if (!memoryDateInput.value?.reportValidity()) return;
 
   isSaving.value = true;
   saveError.value = "";

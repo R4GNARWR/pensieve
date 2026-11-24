@@ -4,6 +4,12 @@ import { body, query } from "express-validator";
 import express from "express";
 
 const router = express.Router();
+const minMemoryYear = 2000;
+const yearRangeMessage = `Укажите год от ${minMemoryYear} до текущего`;
+const dateFormatMessage = "Укажите дату в формате ГГГГ-ММ-ДД";
+
+const isMemoryYear = (year) =>
+    year >= minMemoryYear && year <= new Date().getFullYear();
 
 /**
  * @swagger
@@ -52,10 +58,11 @@ router.get(
   [
     query("year")
       .trim()
-      .isInt({ min: 1900, max: new Date().getFullYear() })
-      .withMessage(
-        "Неправильный год. Должно быть число от 1900 до текущего года"
-      )
+        .isInt()
+        .withMessage(yearRangeMessage)
+        .bail()
+        .custom((value) => isMemoryYear(Number(value)))
+        .withMessage(yearRangeMessage)
       .toInt(),
   ],
   async (req, res) => {
@@ -147,18 +154,21 @@ router.post(
         return true;
       }),
     body("date")
+        .isString()
+        .withMessage(dateFormatMessage)
+        .bail()
       .trim()
-      .escape()
-      .custom((value) => {
-        if (!value) {
-          throw new Error("Поле 'Дата' не может быть пустым");
-        }
-        const currentYear = new Date().getFullYear();
-        if (new Date(value).getFullYear() < currentYear) {
-          throw new Error("Нельзя добавить воспоминание не текущего года!");
-        }
-        return true;
-      }),
+        .notEmpty()
+        .withMessage("Поле 'Дата' не может быть пустым")
+        .bail()
+        .matches(/^\d{4}-\d{2}-\d{2}$/)
+        .withMessage(dateFormatMessage)
+        .bail()
+        .isISO8601({strict: true})
+        .withMessage("Укажите существующую дату")
+        .bail()
+        .custom((date) => isMemoryYear(Number(date.slice(0, 4))))
+        .withMessage(yearRangeMessage),
     body("photo").trim().escape(),
   ],
   async (req, res) => {
