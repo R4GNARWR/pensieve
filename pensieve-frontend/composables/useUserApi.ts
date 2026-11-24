@@ -1,6 +1,20 @@
 import type { User } from "~/types/User";
+import type {AuthTokens} from "~/composables/useAuthTokens";
 import { useUserStore } from "~/stores/userStore";
 import { useSettingsStore } from "~/stores/settingsStore";
+
+interface LoginData {
+  email: string;
+  password: string;
+}
+
+interface RegisterData extends LoginData {
+  name: string;
+}
+
+interface AuthData extends AuthTokens {
+  user: User;
+}
 
 /** Очищает локальную сессию и возвращает пользователя на главную */
 const clearUserData = async () => {
@@ -11,12 +25,7 @@ const clearUserData = async () => {
 };
 
 /** Сохраняет пользователя и токены после входа или регистрации */
-const saveUserFromResponse = (data: any) => {
-  const {
-    user,
-    access_token,
-    refresh_token,
-  }: { user: User; access_token: string; refresh_token: string } = data;
+const saveUserFromResponse = ({user, access_token, refresh_token}: AuthData) => {
   if (user && access_token && refresh_token) {
     saveAuthTokens({ access_token, refresh_token });
     useUserStore().user = user;
@@ -27,17 +36,11 @@ const saveUserFromResponse = (data: any) => {
   }
 };
 
-export const useAuthenticateUser = async ({
-  username,
-  password,
-}: {
-  username: string;
-  password: string;
-}) => {
+export const useAuthenticateUser = async ({email, password}: LoginData) => {
   const { postRequest } = useApi();
   try {
-    const response: any = await postRequest("/login", {
-      body: { username, password },
+    const response = await postRequest<AuthData>("/login", {
+      body: {email, password},
     });
     saveUserFromResponse(response.data);
   } catch (error: any) {
@@ -46,19 +49,11 @@ export const useAuthenticateUser = async ({
   }
 };
 
-export const useRegisterUser = async ({
-  name,
-  username,
-  password,
-}: {
-  name: string;
-  username: string;
-  password: string;
-}) => {
+export const useRegisterUser = async ({name, email, password}: RegisterData) => {
   const { postRequest } = useApi();
   try {
-    const response: any = await postRequest("/register", {
-      body: { name, username, password },
+    const response = await postRequest<AuthData>("/register", {
+      body: {name, email, password},
     });
     saveUserFromResponse(response.data);
   } catch (error: any) {
@@ -106,10 +101,10 @@ export const useLogout = async () => {
   }
 };
 
-export const useGetAllUsers = async (): Promise<User[]> => {
+export const useGetAllUsers = async () => {
   const { getRequest } = useApi();
   try {
-    const { data: response } = await getRequest<User[]>("/users");
+    const {data: response} = await getRequest<Pick<User, "id" | "name">[]>("/users");
     return response.value?.data ?? [];
   } catch (e) {
     console.error("Failed to fetch users:", e);

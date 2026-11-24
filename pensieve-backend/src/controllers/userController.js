@@ -1,5 +1,6 @@
 import crypto from "crypto";
-import { Op } from "sequelize";
+import {Op, UniqueConstraintError} from "sequelize";
+import {sequelize} from "../database.js";
 import User from "../models/user.js";
 import jsonwebtoken from "jsonwebtoken";
 import RefreshToken from "../models/refresh.js";
@@ -17,22 +18,20 @@ const { sign, verify } = jsonwebtoken;
 const JWT_ISSUER = "pensieve";
 const JWT_AUDIENCE = "pensieve-client";
 
+const sessionUser = ({id, email, name, username}) => ({
+  id,
+  email,
+  name,
+  username: username ?? null,
+});
+
 /** Создаёт access-токен с пользовательскими данными на 2 часа */
-const generateAccessToken = (user) => {
-  return sign(
-    {
-      id: user.id,
-      username: user.username,
-      name: user.name,
-    },
-    process.env.SECRET_KEY,
-    {
+const generateAccessToken = (user) =>
+    sign(sessionUser(user), process.env.SECRET_KEY, {
       expiresIn: ACCESS_TOKEN_TTL_SECONDS,
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-    }
-  );
-};
+    });
 
 /** Создаёт уникальный refresh-токен на 14 дней */
 const generateRefreshToken = (id) => {
@@ -45,13 +44,12 @@ const generateRefreshToken = (id) => {
 };
 
 /** Сохраняет refresh-токен с привязкой к пользователю и сроком жизни */
-const createRefreshToken = async (userId) => {
+const createRefreshToken = async (userId, transaction) => {
   const token = generateRefreshToken(userId);
-  await RefreshToken.create({
-    token,
-    userId,
-    expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-  });
+  await RefreshToken.create(
+      {token, userId, expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS)},
+      {transaction}
+  );
   return token;
 };
 
@@ -142,15 +140,15 @@ class authController {
       if (!errors.isEmpty()) {
         return res.status(400).json(ApiResponse.error(errors.array()[0].msg));
       }
-      const { username } = req.body;
+      const {email, password} = req.body;
 
-      const user = await User.findOne({ where: { username } });
+      const user = await User.findOne({where: {email}});
       if (!user) {
         return res
           .status(404)
-          .json(ApiResponse.error("Пользователь с таким логином не найден", 404));
+            .json(ApiResponse.error("Пользователь с таким email не найден", 404));
       }
-      if (comparePasswords(req.body.password, user.password, user.salt) === false) {
+      if (comparePasswords(password, user.password, user.salt) === false) {
         return res.status(400).json(ApiResponse.error("Неверный пароль", 400));
       }
 
@@ -160,11 +158,7 @@ class authController {
 
       res.json(
         ApiResponse.success({
-          user: {
-            id: user.id,
-            name: user.name,
-            username: user.username,
-          },
+          user: sessionUser(user),
           access_token: accessToken,
           refresh_token: refreshToken,
         })
@@ -187,37 +181,35 @@ class authController {
         return res.status(400).json(ApiResponse.error(errors.array()[0].msg));
       }
 
-      const { name, username, password } = req.body;
-
-      const existing = await User.findOne({ where: { username } });
-      if (existing) {
-        return res
-          .status(400)
-          .json(ApiResponse.error("Пользователь с таким логином уже существует", 400));
-      }
+      const {name, email, username, password} = req.body;
 
       const salt = crypto.randomBytes(16).toString("base64");
       const hashedPassword = crypto.scryptSync(password, salt, 64).toString("base64");
 
-      const user = await User.create({ name, username, password: hashedPassword, salt });
-      await SpaceService.createUserSpace(user.id, "Personal");
-
       await cleanupExpiredRefreshTokens();
-      const access_token = generateAccessToken(user);
-      const refresh_token = await createRefreshToken(user.id);
+      const session = await sequelize.transaction(async (transaction) => {
+        const user = await User.create(
+            {name, email, username, password: hashedPassword, salt},
+            {transaction}
+        );
+        await SpaceService.createUserSpace(user.id, "Personal", transaction);
+        return {
+          user: sessionUser(user),
+          access_token: generateAccessToken(user),
+          refresh_token: await createRefreshToken(user.id, transaction),
+        };
+      });
 
-      res.status(201).json(
-        ApiResponse.success({
-          user: {
-            id: user.id,
-            name: user.name,
-            username: user.username,
-          },
-          access_token,
-          refresh_token,
-        })
-      );
+      res.status(201).json(ApiResponse.success(session));
     } catch (e) {
+      if (e instanceof UniqueConstraintError && Object.hasOwn(e.fields, "email")) {
+        return res.status(409).json(ApiResponse.error("Пользователь с таким email уже существует", 409));
+      }
+      if (e instanceof UniqueConstraintError && Object.hasOwn(e.fields, "username")) {
+        return res
+            .status(409)
+            .json(ApiResponse.error("Пользователь с таким именем пользователя уже существует", 409));
+      }
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
       console.log(e);
     }
@@ -226,12 +218,7 @@ class authController {
   /** Возвращает пользователя из проверенного access-токена */
   async authorize(req, res) {
     try {
-      const user = {
-        id: req.user?.id,
-        username: req.user?.username,
-        name: req.user?.name,
-      };
-      res.json(ApiResponse.success(user, 200));
+      res.json(ApiResponse.success(sessionUser(req.user), 200));
     } catch (e) {
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
       console.log(e);

@@ -1,5 +1,6 @@
 import { Model, DataTypes, ForeignKey } from "sequelize";
 import { sequelize } from "../database.js";
+import User from "./user.js";
 
 class Space extends Model {
   declare id: number;
@@ -17,6 +18,12 @@ Space.init(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+      ownerId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          references: {model: User, key: "id"},
+          onDelete: "CASCADE",
     },
   },
   {

@@ -26,8 +26,10 @@
             <h2 class="text-center">Регистрация</h2>
             <TheInput
               class="text-center"
-              placeholder="Логин"
-              v-model="username"
+              placeholder="Email"
+              type="email"
+              name="email"
+              v-model="email"
             ></TheInput>
             <TheInput
               class="text-center"
@@ -44,7 +46,7 @@
           </template>
           <template v-if="currentTab === 'login'">
             <h2 class="text-center">Вход</h2>
-            <TheInput placeholder="Логин" v-model="username"></TheInput>
+            <TheInput placeholder="Email" type="email" name="email" v-model="email"></TheInput>
             <TheInput
               placeholder="Пароль"
               v-model="password"
@@ -59,12 +61,12 @@
 </template>
 <script setup lang="ts">
 const currentTab = ref("");
-const username = ref("");
+const email = ref("");
 const password = ref("");
 const name = ref("");
 
 watch(currentTab, () => {
-  username.value = "";
+  email.value = "";
   password.value = "";
   name.value = "";
 });
@@ -75,7 +77,7 @@ const closeModal = () => {
 
 const authorize = () => {
   useAuthenticateUser({
-    username: username.value,
+    email: email.value,
     password: password.value,
   });
 };
@@ -83,7 +85,7 @@ const authorize = () => {
 const register = () => {
   useRegisterUser({
     name: name.value,
-    username: username.value,
+    email: email.value,
     password: password.value,
   });
 };

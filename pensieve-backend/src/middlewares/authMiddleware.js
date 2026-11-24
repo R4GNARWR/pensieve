@@ -15,7 +15,7 @@ export default async function (req, res, next) {
         .json(ApiResponse.error("Пользователь не авторизован", 401));
     }
     const decodeData = verify(token, process.env.SECRET_KEY);
-    if (decodeData.id && decodeData.username && decodeData.name) {
+    if (decodeData.id && decodeData.email && decodeData.name) {
       req.user = decodeData;
     } else {
       return res.status(403).json(ApiResponse.error("Невалидный токен", 403));

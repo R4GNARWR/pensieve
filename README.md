@@ -4,7 +4,7 @@ A self-hosted family memory journal. Create shared spaces, upload photos, and pr
 
 ## Features
 
-- Multi-user with shared **Spaces** — invite family members by username
+- Multi-user with shared **Spaces** — add family members from the user list
 - Photo uploads with automatic resizing
 - Browse memories by year
 - Fully self-hosted — no cloud services, no subscriptions
@@ -22,7 +22,7 @@ chmod +x setup.sh && ./setup.sh
 
 The script will:
 1. Generate all secrets automatically
-2. Ask for your username, display name, and password
+2. Ask for your email, display name, and password
 3. Build and start the app
 4. Create your first account
 
@@ -54,7 +54,7 @@ Create a backup before updating. Then build the backend, stop the old applicatio
 
 ```bash
 git pull
-docker compose build backend
+docker compose build backend frontend
 docker compose stop backend
 docker compose run --rm backend npm run migrate
 docker compose up -d
@@ -70,6 +70,9 @@ docker compose run --rm backend npm run migrate:down
 The initial-schema migration is intentionally irreversible because it also acts as a baseline for existing databases. Do not use migration rollback to rebuild a local database; use a separate clean database instead.
 
 The `refresh.userId` migration deletes existing refresh tokens. Users will need to sign in again after this update; access tokens remain valid until they expire.
+
+The email login migration requires an empty `user` table. Register new accounts through the updated app after applying
+it.
 
 ## Backup
 

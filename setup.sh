@@ -20,7 +20,7 @@ MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)
 echo "Setup..."
 echo ""
 
-read -p "Username (letters, digits, _ and - only): " ADMIN_USERNAME
+read -r -p "Email: " ADMIN_EMAIL
 read -p "Display name: " ADMIN_NAME
 
 while true; do
@@ -70,7 +70,7 @@ echo "Creating first user..."
 HTTP_STATUS=$(curl -s -o /tmp/pensieve_register.json -w "%{http_code}" \
   -X POST http://localhost/api/register \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"$ADMIN_USERNAME\",\"name\":\"$ADMIN_NAME\",\"password\":\"$ADMIN_PASSWORD\"}")
+  -d "{\"email\":\"$ADMIN_EMAIL\",\"name\":\"$ADMIN_NAME\",\"password\":\"$ADMIN_PASSWORD\"}")
 
 rm -f /tmp/pensieve_register.json
 
@@ -85,7 +85,7 @@ if [ "$HTTP_STATUS" = "201" ]; then
     echo "  Local network:      http://$LOCAL_IP"
   fi
   echo ""
-  echo "Username: $ADMIN_USERNAME"
+  echo "Email: $ADMIN_EMAIL"
 else
   echo "App is running but user creation failed (HTTP $HTTP_STATUS)."
   echo "Register manually at http://localhost"

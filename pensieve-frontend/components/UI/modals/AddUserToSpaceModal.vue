@@ -22,7 +22,6 @@
               @click="selectedUserId = user.id"
             >
               <span class="user-name">{{ user.name }}</span>
-              <span class="user-login">@{{ user.username }}</span>
             </UIButton>
           </div>
 
@@ -45,7 +44,7 @@ const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
 const isVisible = computed(() => settingsStore.isAddUserModalVisible);
 
-const users = ref<User[]>([]);
+const users = ref<Pick<User, "id" | "name">[]>([]);
 const selectedUserId = ref<number | null>(null);
 const loading = ref(false);
 
@@ -101,10 +100,5 @@ const addUser = async () => {
 .user-name {
   font-size: rems(18px);
   line-height: 1.2em;
-}
-
-.user-login {
-  font-size: rems(14px);
-  opacity: 0.6;
 }
 </style>
