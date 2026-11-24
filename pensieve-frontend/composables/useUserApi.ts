@@ -100,14 +100,3 @@ export const useLogout = async () => {
     if (message) alert(message);
   }
 };
-
-export const useGetAllUsers = async () => {
-  const { getRequest } = useApi();
-  try {
-    const {data: response} = await getRequest<Pick<User, "id" | "name">[]>("/users");
-    return response.value?.data ?? [];
-  } catch (e) {
-    console.error("Failed to fetch users:", e);
-    return [];
-  }
-};

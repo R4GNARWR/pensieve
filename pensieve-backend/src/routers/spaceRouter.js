@@ -1,5 +1,6 @@
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import emailValidation from "../middlewares/emailValidation.js";
 import spaceController from "../controllers/spaceController.js";
 import { body } from "express-validator";
 
@@ -81,14 +82,20 @@ router.post(
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [spaceId, email]
  *             properties:
  *               spaceId:
- *                 type: number
- *               userId:
- *                 type: number
+ *                 type: integer
+ *                 minimum: 1
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 maxLength: 254
  *     responses:
  *       200:
  *         description: Пользователь добавлен
+ *       400:
+ *         description: Ошибка валидации или пользователь уже состоит в пространстве
  *       403:
  *         description: Нет прав (не владелец)
  *       404:
@@ -101,9 +108,7 @@ router.post(
     body("spaceId")
       .isInt({ min: 1 })
       .withMessage("spaceId должен быть числом"),
-    body("userId")
-      .isInt({ min: 1 })
-      .withMessage("userId должен быть числом"),
+      emailValidation,
   ],
   async (req, res) => {
     spaceController.addUserToSpace(req, res);

@@ -236,20 +236,6 @@ class authController {
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
     }
   }
-
-  /** Возвращает всех пользователей, кроме текущего */
-  async getUsers(req, res) {
-    try {
-      const users = await User.findAll({
-        where: { id: { [Op.ne]: req.user.id } },
-        attributes: ["id", "username", "name"],
-      });
-      res.json(ApiResponse.success(users));
-    } catch (e) {
-      res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
-      console.log(e);
-    }
-  }
 }
 
 export default new authController();

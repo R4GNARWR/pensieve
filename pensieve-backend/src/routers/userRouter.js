@@ -2,20 +2,9 @@ import express from "express";
 import { body } from "express-validator";
 import userController from "../controllers/userController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import emailValidation from "../middlewares/emailValidation.js";
 
 const router = express.Router();
-
-const emailValidation = body("email")
-    .isString()
-    .withMessage("Введите корректный email")
-    .bail()
-    .trim()
-    .customSanitizer((value) => value.toLowerCase())
-    .isLength({max: 254})
-    .withMessage("Email должен быть не длиннее 254 символов")
-    .bail()
-    .isEmail()
-    .withMessage("Введите корректный email");
 
 const usernameValidation = body("username")
     .optional()
@@ -262,23 +251,5 @@ router.get("/logout", authMiddleware, userController.logout);
  *         description: Токен невалидный или истёк
  */
 router.post("/refresh", userController.refreshToken);
-
-/**
- * @swagger
- *
- * /users:
- *   get:
- *     tags:
- *       - Users
- *     summary: Список всех пользователей приложения
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Массив пользователей (id, name, username может быть null)
- *       403:
- *         description: Пользователь не авторизован
- */
-router.get("/users", authMiddleware, userController.getUsers);
 
 export default router;

@@ -3,102 +3,69 @@
     <div class="auth-modal__wrap" @touchstart.stop>
       <div class="auth-modal">
         <div class="auth-close" @click="close"></div>
-        <div class="auth-modal__content">
+        <form class="auth-modal__content" @submit.prevent="addUser">
           <h2 class="text-center">Добавить участника</h2>
 
-          <div v-if="loading" class="text-center">Загрузка...</div>
-
-          <div v-else-if="users.length === 0" class="text-center">
-            Нет пользователей для добавления
+          <div>
+            <label for="space-member-email">Email участника</label>
+            <TheInput
+                id="space-member-email"
+                name="email"
+                type="email"
+                v-model="email"
+            />
           </div>
 
-          <div v-else class="user-list">
-            <UIButton
-              v-for="user in users"
-              :key="user.id"
-              class="user-item"
-              variant="text"
-              :class="{ selected: selectedUserId === user.id }"
-              @click="selectedUserId = user.id"
-            >
-              <span class="user-name">{{ user.name }}</span>
-            </UIButton>
-          </div>
+          <p v-if="errorMessage" role="alert">{{ errorMessage }}</p>
 
           <UIButton
             label="Добавить"
             variant="white-pink"
-            :disabled="!selectedUserId"
-            @click="addUser"
+            type="submit"
+            :disabled="!email.trim() || !spaceStore.selectedSpaceId"
+            :loading="submitting"
           />
-        </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { User } from "~/types/User";
-
 const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
 const isVisible = computed(() => settingsStore.isAddUserModalVisible);
 
-const users = ref<Pick<User, "id" | "name">[]>([]);
-const selectedUserId = ref<number | null>(null);
-const loading = ref(false);
+const email = ref("");
+const errorMessage = ref("");
+const submitting = ref(false);
 
-watch(isVisible, async (val) => {
-  if (val) {
-    loading.value = true;
-    selectedUserId.value = null;
-    users.value = await useGetAllUsers();
-    loading.value = false;
+watch(isVisible, (visible) => {
+  if (visible) {
+    email.value = "";
+    errorMessage.value = "";
   }
 });
 
 const close = () => {
+  if (submitting.value) return;
   settingsStore.isAddUserModalVisible = false;
 };
 
 const addUser = async () => {
-  if (!selectedUserId.value || !spaceStore.selectedSpaceId) return;
-  await useAddUserToSpace(spaceStore.selectedSpaceId, selectedUserId.value);
-  close();
+  const spaceId = spaceStore.selectedSpaceId;
+  const address = email.value.trim();
+  if (!spaceId || !address || submitting.value) return;
+
+  submitting.value = true;
+  errorMessage.value = "";
+  try {
+    await useAddUserToSpace(spaceId, address);
+    settingsStore.isAddUserModalVisible = false;
+  } catch (error: any) {
+    errorMessage.value = error.data?.error?.message || "Не удалось добавить участника. Попробуйте ещё раз.";
+  } finally {
+    submitting.value = false;
+  }
 };
 </script>
-
-<style lang="scss" scoped>
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.user-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-  transition: border-color 0.2s;
-
-  &.selected {
-    border-color: $pink;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.14);
-  }
-}
-
-.user-name {
-  font-size: rems(18px);
-  line-height: 1.2em;
-}
-</style>

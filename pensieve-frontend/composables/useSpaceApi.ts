@@ -26,12 +26,7 @@ export const useCreateSpace = async (name: string) => {
   postRequest("/space", { body: { name } }).then(() => {});
 };
 
-export const useAddUserToSpace = async (spaceId: number, userId: number) => {
+export const useAddUserToSpace = async (spaceId: number, email: string) => {
   const { postRequest } = useApi();
-  try {
-    await postRequest("/space/add", { body: { spaceId, userId } });
-  } catch (error: any) {
-    const message = error.data?.error?.message;
-    if (message) alert(message);
-  }
+  return postRequest("/space/add", {body: {spaceId, email}});
 };

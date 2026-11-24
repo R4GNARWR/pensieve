@@ -3,6 +3,7 @@ import User from "../models/user.js";
 import UserSpaces from "../models/userSpaces.js";
 import ApiResponse from "../utils/apiResponse.js";
 import { validationResult } from "express-validator";
+import {UniqueConstraintError} from "sequelize";
 import SpaceService from "../services/space-service.js";
 
 class spaceController {
@@ -60,7 +61,7 @@ class spaceController {
         return res.status(400).json(ApiResponse.error(errors.array()[0].msg, 400));
       }
 
-      const { spaceId, userId } = req.body;
+      const {spaceId, email} = req.body;
 
       const space = await Space.findByPk(spaceId);
       if (!space) {
@@ -71,19 +72,23 @@ class spaceController {
         return res.status(403).json(ApiResponse.error("Только владелец может добавлять участников", 403));
       }
 
-      const userToAdd = await User.findByPk(userId);
+      const userToAdd = await User.findOne({where: {email}, attributes: ["id"]});
       if (!userToAdd) {
         return res.status(404).json(ApiResponse.error("Пользователь не найден", 404));
       }
 
-      const alreadyMember = await UserSpaces.findOne({ where: { userId, spaceId } });
+      const membership = {userId: userToAdd.id, spaceId: space.id};
+      const alreadyMember = await UserSpaces.findOne({where: membership});
       if (alreadyMember) {
         return res.status(400).json(ApiResponse.error("Пользователь уже состоит в этом пространстве", 400));
       }
 
-      await UserSpaces.create({ userId, spaceId: space.id });
+      await UserSpaces.create(membership);
       return res.status(200).json(ApiResponse.success("Пользователь добавлен", 200));
     } catch (e) {
+      if (e instanceof UniqueConstraintError) {
+        return res.status(400).json(ApiResponse.error("Пользователь уже состоит в этом пространстве", 400));
+      }
       res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
       console.log(e);
     }
