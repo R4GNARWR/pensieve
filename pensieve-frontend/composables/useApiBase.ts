@@ -123,13 +123,15 @@ export const useApi = () => {
     });
   };
 
-  const postRequest = async <T = unknown>(
+  const fetchWithAuth = async <T>(
+      method: "GET" | "POST",
     url: string,
     options?: FetchOptions
   ) => {
     return $fetch<ApiResponse<T>>(url, {
       baseURL: config.public.apiBase,
-      method: "POST",
+      method,
+      query: options?.params,
       body: options?.body,
       headers: {
         ...getCommonHeaders(),
@@ -149,6 +151,11 @@ export const useApi = () => {
       },
     });
   };
+
+  const fetchRequest = <T = unknown>(url: string, options?: FetchOptions) =>
+      fetchWithAuth<T>("GET", url, options);
+  const postRequest = <T = unknown>(url: string, options?: FetchOptions) =>
+      fetchWithAuth<T>("POST", url, options);
 
   const putRequest = async <T = unknown>(
     url: string,
@@ -204,5 +211,5 @@ export const useApi = () => {
     });
   };
 
-  return { getRequest, postRequest, putRequest, deleteRequest };
+  return {getRequest, fetchRequest, postRequest, putRequest, deleteRequest};
 };

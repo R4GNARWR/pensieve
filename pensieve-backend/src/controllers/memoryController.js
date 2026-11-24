@@ -60,7 +60,10 @@ class spaceController {
         ],
       };
       const memoriesByMonth = {};
-      const memories = await Memory.findAll({ where: whereClause });
+      const memories = await Memory.findAll({
+        where: whereClause,
+        order: [["id", "ASC"]],
+      });
       if (memories.length) {
         memories.forEach((memory) => {
           const month = getMonth(memory.date);

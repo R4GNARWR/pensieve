@@ -1,20 +1,19 @@
 import type { Space } from "~/types/Space";
 
 export const useGetSpaces = async () => {
-  const { getRequest } = useApi();
+  const {fetchRequest} = useApi();
   const spaceStore = useSpaceStore();
+  const userStore = useUserStore();
+  const userId = userStore.user?.id;
+  if (!userId) return;
+
   try {
-    const { data: spaceResponse, error } = await getRequest<Space[]>("/space", {
-      lazy: true,
-    });
+    const {data: spaces} = await fetchRequest<Space[]>("/space");
+    if (userStore.user?.id !== userId) return;
 
-    if (error.value) {
-      console.error("Authorization error:", error.value);
-    }
-
-    if (spaceResponse.value?.data?.length) {
-      spaceStore.spaces = spaceResponse.value.data;
-      spaceStore.selectedSpaceId = spaceStore.spaces[0].id;
+    if (spaces?.length) {
+      spaceStore.spaces = spaces;
+      spaceStore.selectedSpaceId = spaces[0].id;
     }
   } catch (error) {
     console.error("Request failed:", error);

@@ -5,37 +5,45 @@
       <MonthSelect
         v-model="selectedMonth"
         class="mx-auto"
-        @on-change="currentPage = 1"
       />
       <YearsSelect
           :model-value="selectedStoreYear"
           @on-change="changeYear($event.value)"
       />
     </div>
+    <UIButton
+        v-if="spaceStore.selectedSpaceId"
+        class="gallery-add-button mt-4"
+        label="Добавить"
+        variant="white-pink"
+        @click="openAddMemory"
+    />
 
     <div class="gallery-main">
       <div class="gallery-main__wrapper">
-        <template v-if="computedMemories?.length">
-          <div
+        <div
+            v-for="memory of pageMemories"
+            :key="memory.id"
             class="gallery-main__wrapper-item"
-            v-for="memory of computedMemories"
-          >
-            <MainCard :memory="memory"></MainCard>
-          </div>
-        </template>
-        <template v-else>
-          <div class="gallery-main__wrapper-item">
-            <EmptyCard></EmptyCard>
-          </div>
-        </template>
+        >
+          <MainCard :memory="memory"/>
+        </div>
+        <div
+            v-if="spaceStore.selectedSpaceId && currentPage === totalPages"
+            class="gallery-main__wrapper-item"
+        >
+          <EmptyCard @click="openAddMemory"/>
+        </div>
         <div
           class="gallery-main__arrows"
-          v-show="currentMonthMemories?.length > 2"
+          v-show="totalPages > 1"
         >
-          <UIButton variant="icon" aria-label="Предыдущая страница" @click="changePage(-1)">
+          <UIButton variant="icon" aria-label="Предыдущая страница" :disabled="currentPage === 1"
+                    @click="changePage(-1)">
             <img src="/images/svg/arrow-bold.svg" alt="" />
           </UIButton>
-          <UIButton variant="icon" aria-label="Следующая страница" @click="changePage(1)">
+          <UIButton variant="icon" aria-label="Следующая страница" :disabled="currentPage === totalPages"
+                    @click="changePage(1)">
             <img src="/images/svg/arrow-bold.svg" alt="" />
           </UIButton>
         </div>
@@ -55,22 +63,29 @@ const props = defineProps<{
 const selectedStoreYear: ComputedRef<number> = computed(
   () => settingsStore.selectedYear
 );
-const selectedMonth: Ref<number | null> = ref(new Date().getMonth() + 1);
+const selectedMonth = ref<number | string | null>(new Date().getMonth() + 1);
 const currentMonthMemories = computed(() => {
   return selectedMonth.value
     ? props.memories?.[selectedStoreYear.value]?.[selectedMonth.value] || []
     : [];
 });
 
-const currentPage: Ref<number> = ref(1);
-watch(() => spaceStore.selectedSpaceId, () => { currentPage.value = 1; });
-const totalPages = computed(() => {
-  return Math.ceil(currentMonthMemories.value.length / 2);
+const pageSize = 2;
+const currentPage = ref(1);
+const totalPages = computed(() =>
+    Math.ceil((currentMonthMemories.value.length + 1) / pageSize)
+);
+
+watch([() => spaceStore.selectedSpaceId, selectedStoreYear, selectedMonth], () => {
+  currentPage.value = 1;
+});
+watch(totalPages, (pages) => {
+  currentPage.value = Math.min(currentPage.value, pages);
 });
 
-const computedMemories: ComputedRef<Memory[]> = computed(() => {
-  const startIndex = (currentPage.value - 1) * 2;
-  return currentMonthMemories.value.slice(startIndex, startIndex + 2);
+const pageMemories = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize;
+  return currentMonthMemories.value.slice(startIndex, startIndex + pageSize);
 });
 
 const changePage = (value: number) => {
@@ -81,12 +96,21 @@ const changePage = (value: number) => {
 };
 
 const changeYear = (year: number) => {
-  currentPage.value = 1;
   settingsStore.selectedYear = year;
+};
+
+const openAddMemory = () => {
+  settingsStore.isAddMemoryModalVisible = true;
 };
 </script>
 
 <style lang="scss" scoped>
+.gallery-add-button {
+  padding: rems(12px) rems(24px);
+  font-size: rems(24px);
+  text-transform: none;
+}
+
 .gallery-main {
   margin: 0 auto;
   position: relative;
@@ -160,7 +184,17 @@ const changeYear = (year: number) => {
     display: flex;
     justify-content: space-between;
 
+    @media (max-width: 1000px) {
+      position: static;
+      grid-column: 1 / -1;
+      padding: 16px 0 0;
+    }
+
     button {
+      &:disabled {
+        opacity: 0.4;
+      }
+
       img {
         width: 60px;
         height: 40px;

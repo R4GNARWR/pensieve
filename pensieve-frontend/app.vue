@@ -10,8 +10,6 @@ const { accessToken, refreshToken } = useAuthTokens();
 if ((accessToken.value || refreshToken.value) && !userStore.user) {
   await useAuthorizeUser();
 }
-if (userStore.user?.id) {
-  useGetSpaces()
-}
+await useSpaceContext();
 </script>
 <style lang="scss"></style>

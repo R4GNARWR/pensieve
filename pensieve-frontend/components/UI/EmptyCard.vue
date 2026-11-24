@@ -1,22 +1,13 @@
 <template>
-    <div class="card-main py-5 px-8" @click="openAddMemory">
-        <UIButton class="card-main__button mb-5" variant="icon" aria-label="Добавить воспоминание" @click="emit('onClosedClick')">
+  <UIButton class="card-main py-5 px-sm-8 px-6" variant="icon">
+        <span class="card-main__button mb-5">
             <img src="/images/svg/add.svg" alt="">
-        </UIButton>
-        <div class="card-main__info">
-            <div class="card-main__info-title mb-4">
+        </span>
+    <span class="card-main__info">
+            <span class="card-main__info-title mb-4">
                 Добавить воспоминание
-            </div>
-            <div class="card-main__info-date"></div>
-        </div>
-    </div>
+            </span>
+            <span class="card-main__info-date d-block" aria-hidden="true"></span>
+        </span>
+  </UIButton>
 </template>
-<script setup lang="ts">
-const settingsStore = useSettingsStore();
-
-const emit = defineEmits(['onClosedClick']);
-
-const openAddMemory = () => {
-    settingsStore.isAddMemoryModalVisible = true;
-}
-</script>

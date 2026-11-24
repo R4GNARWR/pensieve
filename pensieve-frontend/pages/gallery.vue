@@ -11,6 +11,7 @@
 </template>
 
 <script setup lang="ts">
+const nuxtApp = useNuxtApp();
 const spaceStore = useSpaceStore();
 const settingsStore = useSettingsStore();
 const memoriesStore = useMemoriesStore();
@@ -29,9 +30,12 @@ const totalMemoriesCount = computed(() =>
 watch(
     [selectedSpaceId, selectedYear, () => memoriesStore.refreshVersion],
     async ([spaceId, year], previous) => {
+      const isInitialLoad = !previous?.length;
+      if (isInitialLoad && nuxtApp.isHydrating && spaceId && memories.value[year]) return;
+
         const currentRequest = ++requestId;
         loadError.value = "";
-        if (!previous || previous[0] !== spaceId) {
+      if (isInitialLoad || previous[0] !== spaceId) {
             memoriesStore.memories = {};
         }
         if (!spaceId) return;

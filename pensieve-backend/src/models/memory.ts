@@ -1,6 +1,7 @@
 import { Model, DataTypes, } from "sequelize";
 import type { ForeignKey } from "sequelize";
 import { sequelize } from "../database.js";
+import User from "./user.js";
 
 class Memory extends Model {
   declare id: number;
@@ -19,6 +20,12 @@ Memory.init(
       primaryKey: true,
       autoIncrement: true,
     },
+      userId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          references: {model: User, key: "id"},
+          onDelete: "CASCADE",
+      },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
