@@ -71,8 +71,8 @@
         </div>
       </div>
     </div>
-    <ErrorPopup :message="uploadError" @close="uploadError = ''" />
-    <ErrorPopup title="Не удалось сохранить воспоминание" :message="saveError" @close="saveError = ''" />
+    <Popup title="Не удалось загрузить фото" :message="uploadError" @close="uploadError = ''"/>
+    <Popup title="Не удалось сохранить воспоминание" :message="saveError" @close="saveError = ''"/>
   </section>
 </template>
 

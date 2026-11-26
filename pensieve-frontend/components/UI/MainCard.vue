@@ -9,7 +9,7 @@
     >
       <img src="/images/svg/lock.svg" alt="" />
     </UIButton>
-    <div v-if="!insertMode && !memory?.photo" class="card-main__button mb-5" aria-hidden="true"></div>
+    <div v-if="!insertMode && !memory?.photo" class="card-main__button mb-5"></div>
     <div v-if="memory?.photo" class="card-main__image mb-5">
       <img
           :src="`${staticUrl}uploads/${memory.photo}`"

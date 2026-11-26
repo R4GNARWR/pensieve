@@ -4,7 +4,6 @@
     :class="[variantClass, { 'ui-button--loading': loading }]"
     :type="type"
     :disabled="isDisabled"
-    :aria-busy="loading"
     @click="emit('click', $event)"
   >
     <span v-show="!loading" class="ui-button__content">

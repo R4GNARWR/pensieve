@@ -1,6 +1,6 @@
 <template>
   <div class="menu-wrapper" v-show="isMenuVisible && isAuth">
-    <UIButton class="close menu-close" variant="icon" aria-label="Закрыть меню" @click="closeModal" />
+    <UIButton class="close menu-close" variant="icon" title="Закрыть меню" @click="closeModal"/>
     <div class="menu">
       <div class="menu-head">меню</div>
       <ul class="menu-links">

@@ -26,18 +26,20 @@ const clearUserData = async () => {
 
 /** Сохраняет пользователя и токены после входа или регистрации */
 const saveUserFromResponse = ({user, access_token, refresh_token}: AuthData) => {
+    const settingsStore = useSettingsStore();
   if (user && access_token && refresh_token) {
     saveAuthTokens({ access_token, refresh_token });
     useUserStore().user = user;
-    useSettingsStore().isAuthModalVisible = false;
-    alert("Вы успешно авторизовались!");
+      settingsStore.isAuthModalVisible = false;
+      settingsStore.popups.push({message: "Вы успешно авторизовались!", variant: "success"});
   } else {
-    alert("Что-то пошло не так");
+      settingsStore.popups.push({message: "Что-то пошло не так", variant: "error"});
   }
 };
 
 export const useAuthenticateUser = async ({email, password}: LoginData) => {
   const { postRequest } = useApi();
+    const settingsStore = useSettingsStore();
   try {
     const response = await postRequest<AuthData>("/login", {
       body: {email, password},
@@ -45,12 +47,13 @@ export const useAuthenticateUser = async ({email, password}: LoginData) => {
     saveUserFromResponse(response.data);
   } catch (error: any) {
     const message = error.data?.error?.message;
-    if (message) alert(message);
+      if (message) settingsStore.popups.push({message, variant: "error"});
   }
 };
 
 export const useRegisterUser = async ({name, email, password}: RegisterData) => {
   const { postRequest } = useApi();
+    const settingsStore = useSettingsStore();
   try {
     const response = await postRequest<AuthData>("/register", {
       body: {name, email, password},
@@ -58,7 +61,7 @@ export const useRegisterUser = async ({name, email, password}: RegisterData) => 
     saveUserFromResponse(response.data);
   } catch (error: any) {
     const message = error.data?.error?.message;
-    if (message) alert(message);
+      if (message) settingsStore.popups.push({message, variant: "error"});
   }
 };
 
@@ -91,12 +94,13 @@ export const useAuthorizeUser = async () => {
 /** Отзывает серверные refresh-токены и очищает локальную сессию */
 export const useLogout = async () => {
   const { getRequest } = useApi();
+    const settingsStore = useSettingsStore();
   try {
     const { error } = await getRequest("/logout");
     if (error.value) throw error.value;
     await clearUserData();
   } catch (error: any) {
     const message = error.data?.error?.message;
-    if (message) alert(message);
+      if (message) settingsStore.popups.push({message, variant: "error"});
   }
 };

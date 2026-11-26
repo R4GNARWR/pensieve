@@ -7,7 +7,7 @@
             <span class="card-main__info-title mb-4">
                 Добавить воспоминание
             </span>
-            <span class="card-main__info-date d-block" aria-hidden="true"></span>
+            <span class="card-main__info-date d-block"></span>
         </span>
   </UIButton>
 </template>

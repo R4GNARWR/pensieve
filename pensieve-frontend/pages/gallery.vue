@@ -1,10 +1,15 @@
 <template>
     <section id="galleryPage">
         <div class="gallery-page__header">
-            <h2>{{ selectedYear }} год</h2>
-            <p>всего {{ totalMemoriesCount }} воспоминания</p>
-            <p v-if="loadError" role="alert">{{ loadError }}</p>
+          <h2>
+            <button type="button" @click="yearPicker?.open()">
+              {{ selectedYear }} год
+            </button>
+          </h2>
+          <p v-if="totalMemoriesCount !== null">всего {{ totalMemoriesCount }} воспоминания</p>
+          <p v-if="loadError">{{ loadError }}</p>
         </div>
+      <YearsSelect ref="yearPicker" v-model="settingsStore.selectedYear"/>
         <GalleryMain :memories="memories"></GalleryMain>
     </section>
   <AddMemory v-if="settingsStore.isAddMemoryModalVisible"/>
@@ -18,14 +23,16 @@ const memoriesStore = useMemoriesStore();
 const selectedYear = computed(() => settingsStore.selectedYear);
 const selectedSpaceId = computed(() => spaceStore.selectedSpaceId);
 const memories = computed(() => memoriesStore.memories)
+const yearPicker = ref<{ open: () => void } | null>(null);
 const loadError = ref("");
 let requestId = 0;
 onScopeDispose(() => { requestId++; });
 
-const totalMemoriesCount = computed(() =>
-    Object.values(memories.value[selectedYear.value] ?? {})
-        .reduce((total, items) => total + items.length, 0)
-);
+const totalMemoriesCount = computed(() => {
+  const yearMemories = memories.value[selectedYear.value];
+  if (!yearMemories) return selectedSpaceId.value ? null : 0;
+  return Object.values(yearMemories).reduce((total, items) => total + items.length, 0);
+});
 
 watch(
     [selectedSpaceId, selectedYear, () => memoriesStore.refreshVersion],
@@ -57,6 +64,7 @@ watch(
 
 <style lang="scss">
 .gallery-page__header {
+  position: relative;
     margin: 0 auto;
     width: 455px;
     max-width: 100%;
@@ -74,6 +82,12 @@ watch(
         margin-bottom: 20px;
         font-size: rems(48px);
         line-height: 1em;
+
+      button::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+      }
     }
 
     p {

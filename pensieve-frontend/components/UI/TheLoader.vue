@@ -1,5 +1,5 @@
 <template>
-  <span class="the-loader" role="status" aria-label="Загрузка"></span>
+  <span class="the-loader"></span>
 </template>
 
 <style lang="scss" scoped>

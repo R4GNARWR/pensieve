@@ -16,7 +16,7 @@
             />
           </div>
 
-          <p v-if="errorMessage" role="alert">{{ errorMessage }}</p>
+          <p v-if="errorMessage">{{ errorMessage }}</p>
 
           <UIButton
             label="Добавить"

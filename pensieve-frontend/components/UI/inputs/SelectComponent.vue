@@ -13,7 +13,9 @@
       <ul class="select-list" v-show="isOpened">
         <li v-for="item in list" :key="item.value">
           <UIButton variant="text" @click="selectItem(item)">
-            <span v-html="item.title"></span>
+            <slot name="option" :item="item">
+              <span v-html="item.title"></span>
+            </slot>
           </UIButton>
         </li>
       </ul>
@@ -92,7 +94,7 @@ const selectItem = (item: listItem) => {
     width: 100%;
     border: 1px solid $pink;
     background-color: $white;
-    border-radius: 15px;
+    border-radius: 5px;
     padding-top: calc(1em + 15px * 2);
   }
 
