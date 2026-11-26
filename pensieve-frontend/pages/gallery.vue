@@ -12,7 +12,6 @@
       <YearsSelect ref="yearPicker" v-model="settingsStore.selectedYear"/>
         <GalleryMain :memories="memories"></GalleryMain>
     </section>
-  <AddMemory v-if="settingsStore.isAddMemoryModalVisible"/>
 </template>
 
 <script setup lang="ts">

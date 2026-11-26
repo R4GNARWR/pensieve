@@ -6,6 +6,7 @@
       <main>
         <slot></slot>
       </main>
+      <AddMemory v-if="userStore.user?.id && settingsStore.isAddMemoryModalVisible"/>
     </v-app>
     <AuthModal v-if="settingsStore.isAuthModalVisible"/>
     <AddUserToSpaceModal></AddUserToSpaceModal>
@@ -21,6 +22,7 @@
 import AddUserToSpaceModal from "~/components/UI/modals/AddUserToSpaceModal.vue";
 
 const settingsStore = useSettingsStore();
+const userStore = useUserStore();
 const popup = computed(() => settingsStore.popups[0]);
 </script>
 

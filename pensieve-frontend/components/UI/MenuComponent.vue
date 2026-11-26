@@ -1,44 +1,76 @@
 <template>
-  <div class="menu-wrapper" v-show="isMenuVisible && isAuth">
-    <UIButton class="close menu-close" variant="icon" title="Закрыть меню" @click="closeModal"/>
+  <dialog ref="dialog" class="menu-wrapper" @cancel.prevent="closeMenu">
+    <UIButton class="menu-close" variant="icon" title="Закрыть меню" autofocus @click="closeMenu"/>
     <div class="menu">
       <div class="menu-head">меню</div>
       <ul class="menu-links">
+        <li>
+          <NuxtLink to="/gallery" @click="closeMenu">Галерея</NuxtLink>
+        </li>
         <li><UIButton label="Добавить пользователя" variant="text" @click="openAddUserModal" /></li>
-        <li><nuxt-link>Добавить запись</nuxt-link></li>
-        <li><nuxt-link>Все архивы</nuxt-link></li>
+        <li>
+          <UIButton
+              label="Добавить запись"
+              variant="text"
+              :disabled="!spaceStore.selectedSpaceId"
+              @click="openAddMemoryModal"
+          />
+          <p v-if="!spaceStore.selectedSpaceId" class="menu-hint">Сначала выберите пространство</p>
+        </li>
         <li><UIButton label="Выйти" variant="text" @click="logout" /></li>
       </ul>
     </div>
-  </div>
+  </dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const settingsStore = useSettingsStore();
 const userStore = useUserStore();
-const isMenuVisible = computed(() => settingsStore.isMenuVisible);
-const isAuth = computed(() => userStore.user?.id);
-const closeModal = () => {
+const spaceStore = useSpaceStore();
+const dialog = ref<HTMLDialogElement | null>(null);
+
+watchPostEffect(() => {
+  if (settingsStore.isMenuVisible && userStore.user?.id) {
+    dialog.value?.showModal();
+  } else {
+    dialog.value?.close();
+  }
+});
+
+const closeMenu = () => {
   settingsStore.isMenuVisible = false;
+  dialog.value?.close();
 };
+
 const openAddUserModal = () => {
-  settingsStore.isMenuVisible = false;
+  closeMenu();
   settingsStore.isAddUserModalVisible = true;
 };
+
+const openAddMemoryModal = () => {
+  if (!spaceStore.selectedSpaceId) return;
+  closeMenu();
+  settingsStore.isAddMemoryModalVisible = true;
+};
+
 const logout = () => {
-  useLogout();
+  closeMenu();
+  return useLogout();
 };
 </script>
 
 <style lang="scss" scoped>
 .menu-wrapper {
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 100vw;
+  inset: 0;
+  width: 100%;
   height: 100dvh;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  color: inherit;
   background-color: $blue;
-  z-index: 10000;
 
   &::after {
     content: "";
@@ -95,21 +127,34 @@ const logout = () => {
   font-size: rems(32px);
   line-height: 1em;
   text-align: center;
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  button:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.menu-hint {
+  margin-top: 8px;
+  font-size: rems(20px);
 }
 
 .menu-close {
   position: absolute;
   top: 36px;
   right: 56px;
-  font-size: 0;
+  width: 43px;
+  height: 43px;
+  background: url("/images/svg/close-dark.svg") center / contain no-repeat;
+}
 
-  &::after {
-    position: static;
-    transform: none;
-    display: block;
-    width: 43px;
-    height: 43px;
-    background-size: contain;
-  }
+.menu-wrapper :is(button, a):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
 }
 </style>

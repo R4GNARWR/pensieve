@@ -1,7 +1,8 @@
 <template>
-  <section id="addMemory">
+  <dialog id="addMemory" ref="dialog" @cancel.prevent="closeModal">
     <div class="d-flex w-100 h-100 flex-column align-center" @touchstart.stop>
-      <UIButton class="close" label="Закрыть" variant="text" :disabled="isSaving || isPhotoUploading" @click="closeModal" />
+      <UIButton class="close" label="Закрыть" variant="text" autofocus :disabled="isSaving || isPhotoUploading"
+                @click="closeModal"/>
       <div class="addMemory-card">
         <div class="d-flex addMemory-card__wrap justify-between flex-grow-1 ga-8">
           <div class="addMemory-card__desk ga-4">
@@ -73,7 +74,7 @@
     </div>
     <Popup title="Не удалось загрузить фото" :message="uploadError" @close="uploadError = ''"/>
     <Popup title="Не удалось сохранить воспоминание" :message="saveError" @close="saveError = ''"/>
-  </section>
+  </dialog>
 </template>
 
 <script setup lang="ts">
@@ -83,6 +84,10 @@ import {MIN_MEMORY_YEAR} from '~/constants/memoryDates';
 const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
 const memoriesStore = useMemoriesStore();
+const dialog = ref<HTMLDialogElement | null>(null);
+
+onMounted(() => dialog.value?.showModal());
+onBeforeUnmount(() => dialog.value?.close());
 
 const selectedSpaceId: ComputedRef<number | null> = computed(() => spaceStore.selectedSpaceId);
 
@@ -166,18 +171,27 @@ const attachPhoto = () => {
 <style lang="scss">
 #addMemory {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 1000;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
   background-color: #FFFFFF;
-  display: flex;
   align-items: center;
   justify-content: center;
+
+  &[open] {
+    display: flex;
+  }
+
+  :is(.clear-input, .lined-textarea):focus-visible {
+    outline: 2px solid currentColor;
+  }
 }
 
-.close {
+#addMemory .close {
   cursor: pointer;
   font-size: rems(32px);
   line-height: 2.25em;

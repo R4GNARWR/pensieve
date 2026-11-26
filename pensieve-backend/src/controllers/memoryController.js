@@ -3,13 +3,45 @@ import ApiResponse from "../utils/apiResponse.js";
 import UserSpaces from "../models/userSpaces.js";
 import Memory from "../models/memory.js";
 import Space from "../models/space.js";
-import {Op} from "sequelize";
+import {Op, col, fn} from "sequelize";
+import {MIN_MEMORY_YEAR} from "../constants/memoryDates.js";
 
 const getMonth = (date) => {
   return new Date(date).getUTCMonth() + 1;
 };
 
 class spaceController {
+  async getArchiveYears(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json(ApiResponse.error(errors.array()[0].msg, 400));
+      }
+
+      const {spaceId} = req.query;
+      const membership = await UserSpaces.findOne({where: {userId: req.user.id, spaceId}});
+      if (!membership) {
+        return res.status(403).json(ApiResponse.error("У вас нет доступа к этому пространству", 403));
+      }
+
+      const year = fn("YEAR", col("date"));
+      const currentYear = new Date().getFullYear();
+      const years = await Memory.findAll({
+        attributes: [[year, "year"], [fn("MIN", fn("MONTH", col("date"))), "firstMonth"]],
+        where: {spaceId},
+        group: [year],
+        having: {year: {[Op.between]: [MIN_MEMORY_YEAR, currentYear]}},
+        order: [[year, "DESC"]],
+        raw: true,
+      });
+
+      return res.status(200).json(ApiResponse.success(years, 200));
+    } catch (e) {
+      console.log(e);
+      return res.status(500).json(ApiResponse.error("Ошибка сервера", 500));
+    }
+  }
+
   async getSpaceMemories(req, res) {
     try {
       const errors = validationResult(req);

@@ -2,14 +2,63 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import memoryController from "../controllers/memoryController.js";
 import { body, query } from "express-validator";
 import express from "express";
+import {MIN_MEMORY_YEAR} from "../constants/memoryDates.js";
 
 const router = express.Router();
-const minMemoryYear = 2000;
-const yearRangeMessage = `Укажите год от ${minMemoryYear} до текущего`;
+const yearRangeMessage = `Укажите год от ${MIN_MEMORY_YEAR} до текущего`;
 const dateFormatMessage = "Укажите дату в формате ГГГГ-ММ-ДД";
 
 const isMemoryYear = (year) =>
-    year >= minMemoryYear && year <= new Date().getFullYear();
+    year >= MIN_MEMORY_YEAR && year <= new Date().getFullYear();
+
+/**
+ * @swagger
+ * /memory/years:
+ *   get:
+ *     tags:
+ *       - Memory
+ *     description: Годы с воспоминаниями и первый месяц с записями в каждом году
+ *     parameters:
+ *       - in: query
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *     responses:
+ *       200:
+ *         description: Годы от новых к старым
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       year:
+ *                         type: integer
+ *                       firstMonth:
+ *                         type: integer
+ *                         minimum: 1
+ *                         maximum: 12
+ *       400:
+ *         description: Некорректный ID пространства
+ *       403:
+ *         description: Нет доступа к пространству
+ */
+router.get(
+    "/memory/years",
+    authMiddleware,
+    query("spaceId", "Укажите корректный ID пространства")
+        .isString()
+        .bail()
+        .isInt({min: 1, max: Number.MAX_SAFE_INTEGER})
+        .toInt(),
+    (req, res) => memoryController.getArchiveYears(req, res)
+);
 
 /**
  * @swagger

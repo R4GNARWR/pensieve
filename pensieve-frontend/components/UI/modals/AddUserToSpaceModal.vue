@@ -1,8 +1,9 @@
 <template>
-  <div class="modal-base__wrap" @touchstart="close" v-if="isVisible">
-    <div class="auth-modal__wrap" @touchstart.stop>
+  <dialog ref="dialog" class="modal-base__wrap add-user-dialog" @cancel.prevent="close" @touchstart.self="close">
+    <div class="auth-modal__wrap">
       <div class="auth-modal">
-        <div class="auth-close" @click="close"></div>
+        <UIButton class="auth-close" title="Закрыть форму" variant="icon" autofocus :disabled="submitting"
+                  @click="close"/>
         <form class="auth-modal__content" @submit.prevent="addUser">
           <h2 class="text-center">Добавить участника</h2>
 
@@ -28,12 +29,13 @@
         </form>
       </div>
     </div>
-  </div>
+  </dialog>
 </template>
 
 <script setup lang="ts">
 const settingsStore = useSettingsStore();
 const spaceStore = useSpaceStore();
+const dialog = ref<HTMLDialogElement | null>(null);
 const isVisible = computed(() => settingsStore.isAddUserModalVisible);
 
 const email = ref("");
@@ -44,8 +46,11 @@ watch(isVisible, (visible) => {
   if (visible) {
     email.value = "";
     errorMessage.value = "";
+    dialog.value?.showModal();
+  } else {
+    dialog.value?.close();
   }
-});
+}, {flush: "post"});
 
 const close = () => {
   if (submitting.value) return;
@@ -69,3 +74,21 @@ const addUser = async () => {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.add-user-dialog {
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  &:not([open]) {
+    display: none;
+  }
+
+  &::backdrop {
+    background: rgb(0 0 0 / 15%);
+  }
+}
+</style>
